@@ -1,0 +1,78 @@
+﻿Assets/_Project/
+├── Scenes/
+│   ├── Bootstrap.unity
+│   ├── MainMenu.unity
+│   └── Gameplay.unity
+│
+├── Scripts/
+│   ├── Core/
+│   │   ├── ServiceLocator/
+│   │   │   ├── IService.cs
+│   │   │   ├── ServiceLocator.cs
+│   │   │   └── ServiceInstaller.cs
+│   │   ├── SceneManagement/
+│   │   │   ├── SceneNames.cs
+│   │   │   └── SceneLoader.cs
+│   │   └── GameManager.cs
+│   │
+│   ├── Services/
+│   │   ├── Audio/
+│   │   │   ├── IAudioService.cs
+│   │   │   ├── AudioService.cs
+│   │   │   └── AudioData.cs
+│   │   ├── Camera/
+│   │   │   ├── ICameraService.cs
+│   │   │   ├── CameraService.cs
+│   │   │   └── CameraShakeProfile.cs
+│   │   ├── GameState/
+│   │   │   ├── IGameStateService.cs
+│   │   │   └── GameStateService.cs
+│   │   └── Installer/
+│   │       ├── GameplayInstaller.cs
+│   │       └── MainMenuInstaller.cs
+│   │
+│   ├── Test/
+│   │   ├── AudioServiceTest.cs
+│   │   ├── GameStateTest.cs
+│   │   └── CameraServiceTest.cs
+│   │
+│   ├── UI/
+│   │   ├── Base/
+│   │   │   ├── UIPanel.cs
+│   │   │   └── UIButton.cs
+│   │   ├── MainMenu/
+│   │   │   └── MainMenuUI.cs
+│   │   ├── Settings/
+│   │   │   └── SettingsPanel.cs
+│   │   └── Gameplay/
+│   │       ├── GameplayUI.cs
+│   │       ├── WinPanel.cs
+│   │       └── LosePanel.cs
+│   │
+│   └── Gameplay/
+│       └── GameplayController.cs
+│
+├── Prefabs/
+│   ├── Core/
+│   │   ├── ServiceLocator.prefab
+│   │   └── GameManager.prefab
+│   ├── Camera/
+│   │   ├── GameplayCamera.prefab
+│   │   └── MenuCamera.prefab
+│   └── UI/
+│       ├── MainMenuCanvas.prefab
+│       ├── SettingsPanel.prefab
+│       ├── WinPanel.prefab
+│       └── LosePanel.prefab
+│
+├── Settings/
+│   └── CameraShakes/
+│       ├── SmallShake.asset
+│       ├── MediumShake.asset
+│       ├── HeavyShake.asset
+│       └── ExplosionShake.asset
+│
+└── Resources/
+    └── Audio/
+        ├── Music/
+        └── SFX/

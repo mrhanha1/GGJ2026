@@ -1,0 +1,138 @@
+﻿## Bootstrap.unity
+```
+Bootstrap Scene
+├── ServiceLocator
+│   └── Components:
+│       └── ServiceLocator (script)
+│   
+├── GameManager
+│   └── Components:
+│       └── GameManager (script)
+│           - Auto Load Main Menu: ✓
+│           - Delay Before Load: 0.5
+│   
+├── Main Camera (default)
+│   
+└── Directional Light (default)
+
+
+DontDestroyOnLoad Hierarchy (Runtime):
+└── ServiceLocator
+    └── SceneLoader (created runtime by GameManager)
+        └── Component: SceneLoader
+```
+
+## MainMenu.unity
+```
+MainMenu Scene
+├── MenuCamera
+│   └── Components:
+│       ├── Camera
+│       │   - Tag: Main Camera
+│       │   - Position: (0, 0, -10)
+│       │   - Projection: Orthographic
+│       │   - Size: 5
+│       └── (NO CinemachineBrain)
+│
+├── ServiceInstaller
+│   └── Components:
+│       └── MainMenuInstaller (script)
+│           - Audio Data: MainAudioData asset
+│
+├── Canvas
+│   ├── Components:
+│   │   ├── Canvas
+│   │   ├── Canvas Scaler (Scale With Screen Size: 1920x1080)
+│   │   ├── Graphic Raycaster
+│   │   └── MainMenuUI (script)
+│   │ 
+│   ├── PlayButton (Button - TextMeshPro)
+│   ├── SettingsButton (Button - TextMeshPro)
+│   ├── ExitButton (Button - TextMeshPro)
+│   └── SettingsPanel
+│       ├Sliders (master, music, sfx)
+|       └CloseButton
+│
+├── EventSystem (auto-created with Canvas)
+│
+├── AudioServiceTest (Empty GameObject - Optional for testing)
+│   └── Components:
+│       └── AudioServiceTest (script)
+│           - Audio Data: MainAudioData asset
+│
+└── Directional Light (default)
+
+
+DontDestroyOnLoad Hierarchy (After MainMenu loads):
+└── ServiceLocator
+    ├── SceneLoader
+    ├── AudioService (created runtime by MainMenuInstaller)
+    │   └── Components:
+    │       └── AudioService
+    │       └── AudioSource (Music) - added runtime
+    │       └── AudioSource (SFX 1-5) - added runtime
+    └── GameStateService (created runtime by MainMenuInstaller)
+        └── Component: GameStateService
+```
+
+## Gameplay.unity
+```
+Gameplay Scene
+├── GameplayCamera
+│   ├── Components:
+│   │   ├── Cinemachine Impulse Source
+│   │   └── CameraService (script)
+│   │       - Cinemachine Camera: CM Camera (below)
+│   │       - Impulse Source: CM Camera (below)
+│   │
+│   ├── Main Camera (child)
+│   │   └── Components:
+│   │       ├── Camera
+│   │       │   - Tag: Main Camera
+│   │       │   - Projection: Orthographic
+│   │       └── CinemachineBrain
+│   │           - Update Method: Smart Update
+│   │           - Blend Update Method: Late Update
+│   │
+│   └── CM Camera (child)
+│       └── Components:
+│           ├── CinemachineCamera
+│           │   - Tracking Target: Player
+│           │   - Look At Target: None
+│           │   - Lens:
+│           │       - Orthographic: ✓
+│           │       - Orthographic Size: 5
+│           │   - Position Composer:
+│           │       - Camera Distance: 10
+│           │       - Dead Zone Width: 0.1
+│           │       - Dead Zone Height: 0.1
+│           └── CinemachineImpulseListener
+│
+├── ServiceInstaller
+│   └── Components:
+│       └── GameplayInstaller (script)
+│           - Camera Service: GameplayCamera (reference)
+│
+├── Player
+│   ├── Transform: Position (0, 0, 0)
+│   └── Components:
+│       ├── Mesh Filter
+│       ├── Mesh Renderer
+│       ├── Box Collider
+|       └--CameraServiceTest (script)
+│
+├── GameStateTest (Empty GameObject - Optional)
+│   └── Components:
+│       └── GameStateTest (script)
+│
+├── EventSystem (if has UI)
+│
+└── Directional Light (default)
+
+
+DontDestroyOnLoad Hierarchy (After Gameplay loads):
+└── ServiceLocator
+    ├── SceneLoader
+    ├── AudioService (persists from MainMenu)
+    ├── GameStateService (persists from MainMenu)
+    └── (NO CameraService - vì CameraService là component của GameplayCamera trong scene)

@@ -1,0 +1,103 @@
+﻿Phase 1: Core System
+1.1 Service Locator
+
+IService - Base interface
+ServiceLocator - Singleton, DontDestroyOnLoad
+ServiceInstaller - Đăng ký services per scene
+
+1.2 Scene Management
+
+SceneNames - Static class chứa tên scenes
+SceneLoader - Service load/unload scenes
+
+1.3 Game Manager
+
+GameManager - Entry point, khởi tạo ServiceLocator
+
+
+Phase 2: Services
+2.1 Audio Service
+
+Interface: Play/Stop music, Play SFX, Volume control
+Implementation: AudioSource management, PlayerPrefs save
+AudioData - ScriptableObject cho audio clips
+
+2.2 Camera Service ⭐
+
+Interface: ShakeCamera, SetFollowTarget, SetZoom
+Implementation:
+
+Tham chiếu CinemachineCamera (Cinemachine 3.x)
+Tham chiếu CinemachineImpulseSource
+Follow/LookAt target management
+
+
+CameraShakeProfile - ScriptableObject (Force, Duration, Frequency)
+
+2.3 Game State Service
+
+Interface: Win/Lose logic, State tracking, Events
+Implementation: Enum states (Menu, Playing, Paused, Win, Lose)
+
+
+Phase 3: UI System
+3.1 Base Classes
+
+UIPanel - Show/Hide với animation support
+UIButton - Wrapper với audio feedback
+
+3.2 Panels
+
+MainMenuUI - Start, Settings, Exit buttons
+SettingsPanel - Master/Music/SFX sliders, Close button
+WinPanel / LosePanel - Restart, Main Menu buttons
+GameplayUI - In-game HUD
+
+
+Phase 4: Cinemachine Setup ⭐
+4.1 Package Installation
+
+Install Cinemachine 3.1.5 từ Package Manager
+
+4.2 Camera Prefabs
+GameplayCamera.prefab:
+GameObject: GameplayCamera
+├── Camera (Main Camera tag)
+│   └── CinemachineBrain
+└── CM Camera (child)
+    ├── CinemachineCamera (component)
+    │   - Tracking Target: null (set runtime)
+    │   - Look At Target: null
+    │   - Position Composer
+    │   - Rotation Composer
+    └── CinemachineImpulseSource
+        - Use 6D Shake
+MenuCamera.prefab:
+GameObject: MenuCamera
+└── Camera (Main Camera tag)
+    - Static position
+4.3 Shake Profiles (ScriptableObjects)
+
+SmallShake: Force 0.5, Duration 0.2s
+MediumShake: Force 1.5, Duration 0.4s
+HeavyShake: Force 3.0, Duration 0.6s
+ExplosionShake: Force 5.0, Duration 0.8s
+
+
+Phase 5: Integration
+5.1 Bootstrap Scene
+
+Instantiate ServiceLocator
+Load MainMenu scene
+
+5.2 Scene-Specific Services
+
+MainMenu: MenuCamera, NO CameraService
+Gameplay: GameplayCamera, Register CameraService
+
+5.3 Flow Testing
+
+Bootstrap → MainMenu → Gameplay → Win/Lose → Restart
+Camera shake triggers
+Audio settings persistence
+ServiceLocator persistence
