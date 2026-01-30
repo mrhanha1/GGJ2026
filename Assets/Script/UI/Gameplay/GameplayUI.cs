@@ -1,5 +1,3 @@
-// Assets/_Project/Scripts/UI/Gameplay/GameplayUI.cs
-
 using UnityEngine;
 using Game.Core;
 using Game.Services.GameState;
