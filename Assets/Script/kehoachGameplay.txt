@@ -1,0 +1,310 @@
+﻿### **Phase 1: Setup Tilemap & Basic Board**
+
+**Triển khai:**
+1. Tạo 3 Tiles: EmptyTile (xám), FilledTile (xanh), TargetTile (vàng)
+2. Tạo PuzzleBoard prefab: Grid → Tilemap (component + renderer)
+3. PuzzleBoard.cs:
+   - `InitializeBoard()` - fill 15x15 EmptyTile
+   - `SetTileValue(Vector3Int pos, bool value)` - set Empty/Filled
+   - `GetTileValue(Vector3Int pos)` - return bool
+   - `IsTargetTile(Vector3Int pos)` - check targetMap
+   - `IsComplete()` - check theo targetMap hoặc all tiles
+   - `SetTargetMap(bool[,] map)` - set từ LevelConfig
+   - `GridToWorldPosition(Vector3Int)` - helper
+   - `WorldToGridPosition(Vector3)` - helper
+4. Đặt PuzzleBoard vào Gameplay scene
+
+**Test:**
+- Play → thấy grid 15x15 xám
+- Inspector: `SetTileValue(0,0, true)` → tile đổi xanh
+- Set targetMap một số ô → `IsComplete()` check đúng
+
+---
+
+### **Phase 2: Piece Data & Shape Editor**
+
+**Triển khai:**
+1. PieceType.cs: enum { AND, OR, NOT }
+2. PieceShape.cs (ScriptableObject):
+   - `string shapeName`
+   - `bool[,] shape`
+   - `int width, height`
+   - `GetOccupiedCells()` - return List<Vector2Int>
+3. PieceShapeEditor.cs (Custom Editor):
+   - Vẽ grid trong Inspector
+   - Click toggle true/false
+   - Buttons: Clear/Fill/Resize
+   - Live preview
+4. Tạo 7 PieceShape assets: I, O, T, S, Z, J, L
+5. PuzzlePiece.cs (class):
+   - `PieceShape shape`
+   - `PieceType type`
+   - `GetOccupiedCells()`
+6. PieceFactory.cs:
+   - `List<PieceShape> availableShapes`
+   - `CreateRandomPiece()` - random shape + type
+
+**Test:**
+- Inspector: Mở PieceShape → vẽ grid → preview update
+- Resize grid → shape adapt
+- CreateRandomPiece() → log shape + type
+- Tạo shape mới dễ dàng
+
+---
+
+### **Phase 3: Placement Settings & Logic**
+
+**Triển khai:**
+1. GameplaySettings.cs (ScriptableObject):
+   - `bool requireFullyInside` - check/uncheck
+   - `bool fillAllTiles` - check/uncheck
+   - `CanPlacePiece(cells, position, boardSize)` - validate theo requireFullyInside
+2. Tạo GameplaySettings.asset
+3. Update PuzzleBoard.cs:
+   - `GameplaySettings settings` (reference)
+   - `CanPlacePiece(piece, position)` - gọi settings.CanPlacePiece()
+   - `PlacePiece(piece, position)` - loop cells, apply AND/OR/NOT
+   - `ApplyOperation(currentValue, type)` - logic toán tử
+   - Update `IsComplete()` - check theo settings.fillAllTiles
+
+**Test:**
+- requireFullyInside = true: piece ra ngoài → CanPlacePiece = false
+- requireFullyInside = false: piece có ít nhất 1 tile trong → true
+- PlacePiece với OR → tiles = 1
+- PlacePiece với NOT → tiles flip
+- PlacePiece với AND → tiles giữ nguyên
+- fillAllTiles = true → IsComplete() check all
+- fillAllTiles = false → IsComplete() check targetMap only
+
+---
+
+### **Phase 4: Piece Visual & Drag Handler**
+
+**Triển khai:**
+1. PieceVisual.cs:
+   - `SpriteRenderer[] tileCells`
+   - `Color andColor/orColor/notColor`
+   - `GenerateVisual(piece)` - tạo sprite grid theo shape, set màu theo type
+   - `SetAlpha(float)` - điều chỉnh transparency
+   - `SetTint(Color)` - set màu valid/invalid
+2. PieceDragHandler.cs:
+   - `PieceVisual visual`
+   - `PuzzlePiece currentPiece`
+   - `PuzzleBoard board`
+   - `Camera mainCamera`
+   - `bool isDragging`
+   - `int sourceSlotIndex`
+   - `OnBeginDrag(slotIndex, piece)` - bắt đầu kéo
+   - `OnDrag()` - update position theo touch/mouse
+   - `OnEndDrag()` - check valid → invoke events
+   - `UpdatePosition()` - get pointer world position (PC/Mobile)
+   - `UpdateValidityVisual()` - snap grid, set alpha/tint
+   - `GetPointerWorldPosition()` - xử lý Input.mousePosition/Input.GetTouch
+   - `GetGridPosition(worldPos)` - convert to grid
+   - Events: `OnSuccessfulPlacement`, `OnFailedPlacement`
+3. Tạo PieceDragHandler prefab với PieceVisual + CanvasGroup
+
+**Test:**
+- PC: Click giữ → piece theo chuột, snap vào grid
+- Mobile: Touch giữ → piece theo ngón tay, snap vào grid
+- Valid position → trắng mờ (alpha 0.7)
+- Invalid position → đỏ mờ (alpha 0.4)
+- Thả valid → trigger OnSuccessfulPlacement
+- Thả invalid → trigger OnFailedPlacement
+
+---
+
+### **Phase 5: Input Manager với Drag Events**
+
+**Triển khai:**
+1. PieceInventory.cs:
+   - `List<PuzzlePiece> slots` (max 3)
+   - `PieceFactory factory`
+   - `RefillInventory()` - fill đủ 3 slots
+   - `GetPiece(index)`
+   - `RemovePiece(index)` - xóa + refill
+   - `UnityEvent onInventoryChanged`
+2. InputHandler.cs:
+   - `PuzzleBoard board`
+   - `PieceInventory inventory`
+   - `PieceDragHandler dragHandler`
+   - `int selectedSlot`
+   - `OnSlotBeginDrag(slotIndex)` - gọi dragHandler.OnBeginDrag()
+   - `OnSlotDrag()` - gọi dragHandler.OnDrag()
+   - `OnSlotEndDrag()` - gọi dragHandler.OnEndDrag()
+   - `OnPiecePlaced(slotIndex, gridPos)` - board.PlacePiece() + inventory.RemovePiece()
+   - `OnPlaceFailed()` - reset dragHandler
+   - Subscribe dragHandler events trong Start()
+3. Thêm InputHandler vào scene, assign references
+
+**Test:**
+- Drag slot → dragHandler active
+- Thả valid → piece đặt vào board, inventory refill, dragHandler hide
+- Thả invalid → dragHandler hide, slot giữ nguyên
+- Drag nhiều pieces liên tục → hoạt động ổn
+- PC và Mobile đều OK
+
+---
+
+### **Phase 6: UI Inventory với Drag Interfaces**
+
+**Triển khai:**
+1. InventorySlotUI.cs:
+   - `PieceVisual visual`
+   - `int slotIndex`
+   - `Image border`
+   - `InputHandler inputHandler`
+   - `CanvasGroup canvasGroup`
+   - Implement: IBeginDragHandler, IDragHandler, IEndDragHandler
+   - `SetPiece(piece)` - update visual
+   - `SetSelected(bool)` - highlight border
+   - `OnBeginDrag()` - gọi inputHandler, set alpha = 0.5
+   - `OnDrag()` - gọi inputHandler
+   - `OnEndDrag()` - gọi inputHandler, set alpha = 1
+2. InventoryUI.cs:
+   - `InventorySlotUI[] slotUIs` (3 slots)
+   - `PieceInventory inventory`
+   - `UpdateDisplay()` - loop slots.SetPiece()
+   - Subscribe inventory.onInventoryChanged
+3. Tạo Canvas UI:
+   - InventoryPanel → 3 InventorySlot prefabs
+   - Mỗi slot: Image(border) + PieceVisual + CanvasGroup + InventorySlotUI
+
+**Test:**
+- Play → 3 pieces hiển thị trong UI
+- Drag slot → slot mờ đi (alpha 0.5), piece clone theo chuột
+- Thả → slot sáng lại (alpha 1)
+- Đặt piece thành công → UI update piece mới
+- PC/Mobile đều hoạt động
+- 3 slots luôn có piece
+
+---
+
+### **Phase 7: Level Config với Target Map Editor**
+
+**Triển khai:**
+1. LevelConfig.cs (ScriptableObject):
+   - `int levelIndex`
+   - `Texture2D targetImage` (15x15 pixel)
+   - `bool[,] targetMap` (15x15)
+   - `GetPixelColor(x, y)`
+   - `IsTargetTile(x, y)`
+2. LevelConfigEditor.cs (Custom Editor):
+   - Vẽ grid 15x15 trong Inspector
+   - Click toggle target true/false
+   - 2 màu: target (vàng), non-target (xám)
+   - Buttons: Fill All/Clear All/Invert
+   - Button "Import from Image" - auto set targetMap từ targetImage
+   - Live preview
+3. Tạo 7 LevelConfig assets với ảnh pixel 15x15
+4. Update PuzzleBoard.cs:
+   - `LevelConfig currentLevel`
+   - `Tilemap backgroundTilemap` (ảnh đích)
+   - `Tilemap overlayTilemap` (target overlay)
+   - `TileBase[] coloredTiles` (7 màu)
+   - `LoadLevel(level)` - init + set targetMap + show images
+   - `ShowTargetImage()` - set background với pixel colors (alpha 0.3)
+   - `ShowTargetOverlay()` - nếu fillAllTiles=false, hiện targetTiles (alpha 0.5)
+5. Update PuzzleBoard prefab:
+   - Grid → BackgroundTilemap + OverlayTilemap + Tilemap
+6. PuzzleManager.cs:
+   - `PuzzleBoard board`
+   - `LevelConfig[] levels` (7 levels)
+   - `int currentLevelIndex`
+   - `LoadLevel(index)`
+
+**Test:**
+- Inspector: Mở LevelConfig → vẽ targetMap → preview update
+- Button "Import from Image" → auto fill từ ảnh
+- Play scene, fillAllTiles=true → không thấy overlay
+- fillAllTiles=false → thấy overlay vàng tại target tiles
+- LoadLevel(0-6) → ảnh thay đổi đúng
+- Background hiển thị ảnh pixel mờ
+
+---
+
+### **Phase 8: Win Condition & Progression**
+
+**Triển khai:**
+1. Update PuzzleManager.cs:
+   - `IGameStateService gameState`
+   - `bool isLevelComplete`
+   - Update(): check board.IsComplete() → OnLevelComplete()
+   - `OnLevelComplete()` - set flag + gameState.SetWin()
+   - `NextLevel()` - currentLevelIndex++, LoadLevel() hoặc MainMenu
+   - `RestartLevel()` - LoadLevel(currentLevelIndex)
+2. GameplayUI.cs:
+   - `Text levelText` - "Level X/7"
+   - `Text modeText` - "Fill All | Inside Only"
+   - `UpdateUI()` - update texts theo settings
+3. Update WinPanel.cs:
+   - `OnNextButtonClick()` - puzzleManager.NextLevel()
+   - `OnRestartButtonClick()` - puzzleManager.RestartLevel()
+
+**Test:**
+- fillAllTiles=true: fill hết 15x15 → Win
+- fillAllTiles=false: fill hết targets → Win
+- WinPanel hiện → click Next → load level kế
+- Level 7 complete → quay MainMenu
+- Restart → reset đúng level hiện tại
+- UI hiển thị level và mode đúng
+
+---
+
+### **Phase 9: Runtime Settings Panel**
+
+**Triển khai:**
+1. SettingsPanelGameplay.cs:
+   - `GameplaySettings settings`
+   - `Toggle fillAllTilesToggle`
+   - `Toggle requireFullyInsideToggle`
+   - `PuzzleBoard board`
+   - Start(): load từ settings → set toggles
+   - `OnFillAllChanged(bool)` - update settings + board.ShowTargetOverlay()
+   - `OnRequireInsideChanged(bool)` - update settings
+   - Subscribe toggle events
+2. Tạo SettingsPanel UI:
+   - Header: "Game Rules"
+   - 2 Toggles với labels
+   - CloseButton
+3. Update GameplayUI.cs:
+   - `Button settingsButton`
+   - `OnSettingsButtonClick()` - settingsPanel.Show()
+
+**Test:**
+- Play → click Settings button → panel hiện
+- Toggle "Fill All Tiles":
+  - ON → phải fill hết, no overlay
+  - OFF → chỉ fill targets, overlay hiện
+- Toggle "Require Fully Inside":
+  - ON → piece ra ngoài invalid
+  - OFF → piece có 1 tile trong OK
+- Toggle runtime → game adapt ngay
+- Close → tiếp tục chơi
+
+---
+
+### **Phase 10: Audio, Camera & Polish**
+
+**Triển khai:**
+1. Update PuzzleBoard.PlacePiece():
+   - Gọi audioService.PlaySFX("place_piece")
+   - Nếu IsComplete() → SFX("level_complete") + cameraService.ShakeCamera()
+2. Update InputHandler.OnPlaceFailed():
+   - audioService.PlaySFX("invalid_place")
+   - Optional: flash red border around board
+3. Thêm SFX: place_piece, level_complete, invalid_place, ui_click
+4. Visual polish:
+   - Tile fade-in khi LoadLevel()
+   - Piece placement particle effect
+   - Completion celebration effect
+   - Smooth UI transitions (InventorySlot scale on drag)
+   - DragHandler smooth follow
+
+**Test:**
+- Đặt piece → SFX play
+- Invalid placement → SFX + visual feedback
+- Complete level → celebration SFX + camera shake + particles
+- UI animations smooth
+- Drag responsive và mượt
+- Tất cả hoạt động tốt trên PC và Mobile

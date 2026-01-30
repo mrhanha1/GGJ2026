@@ -43,14 +43,44 @@
 │   │   ├── MainMenu/
 │   │   │   └── MainMenuUI.cs
 │   │   ├── Settings/
-│   │   │   └── SettingsPanel.cs
+│   │   │   ├── SettingsPanel.cs
+│   │   │   └── SettingsPanelGameplay.cs
 │   │   └── Gameplay/
 │   │       ├── GameplayUI.cs
 │   │       ├── WinPanel.cs
-│   │       └── LosePanel.cs
+│   │       ├── LosePanel.cs
+│   │       ├── InventoryUI.cs
+│   │       └── InventorySlotUI.cs
 │   │
 │   └── Gameplay/
-│       └── GameplayController.cs
+│       ├── Board/
+│       │   ├── PuzzleBoard.cs
+│       │   └── Tiles/
+│       │       ├── EmptyTile.asset
+│       │       ├── FilledTile.asset
+│       │       └── TargetTile.asset
+│       ├── Pieces/
+│       │   ├── Data/
+│       │   │   ├── PieceType.cs
+│       │   │   ├── PieceShape.cs
+│       │   │   └── PuzzlePiece.cs
+│       │   ├── Visual/
+│       │   │   └── PieceVisual.cs
+│       │   ├── Input/
+│       │   │   ├── PieceDragHandler.cs
+│       │   │   └── InputHandler.cs
+│       │   ├── Factory/
+│       │   │   └── PieceFactory.cs
+│       │   └── Inventory/
+│       │       └── PieceInventory.cs
+│       ├── Level/
+│       │   ├── LevelConfig.cs
+│       │   └── PuzzleManager.cs
+│       ├── Settings/
+│       │   └── GameplaySettings.cs
+│       └── Editor/
+│           ├── PieceShapeEditor.cs
+│           └── LevelConfigEditor.cs
 │
 ├── Prefabs/
 │   ├── Core/
@@ -59,20 +89,56 @@
 │   ├── Camera/
 │   │   ├── GameplayCamera.prefab
 │   │   └── MenuCamera.prefab
-│   └── UI/
-│       ├── MainMenuCanvas.prefab
-│       ├── SettingsPanel.prefab
-│       ├── WinPanel.prefab
-│       └── LosePanel.prefab
+│   ├── UI/
+│   │   ├── MainMenuCanvas.prefab
+│   │   ├── SettingsPanel.prefab
+│   │   ├── SettingsPanelGameplay.prefab
+│   │   ├── WinPanel.prefab
+│   │   ├── LosePanel.prefab
+│   │   ├── InventoryPanel.prefab
+│   │   └── InventorySlot.prefab
+│   └── Gameplay/
+│       ├── PuzzleBoard.prefab
+│       └── PieceDragHandler.prefab
 │
 ├── Settings/
-│   └── CameraShakes/
-│       ├── SmallShake.asset
-│       ├── MediumShake.asset
-│       ├── HeavyShake.asset
-│       └── ExplosionShake.asset
+│   ├── CameraShakes/
+│   │   ├── SmallShake.asset
+│   │   ├── MediumShake.asset
+│   │   ├── HeavyShake.asset
+│   │   └── ExplosionShake.asset
+│   ├── GameplaySettings.asset
+│   ├── Pieces/
+│   │   ├── I_Shape.asset
+│   │   ├── O_Shape.asset
+│   │   ├── T_Shape.asset
+│   │   ├── S_Shape.asset
+│   │   ├── Z_Shape.asset
+│   │   ├── J_Shape.asset
+│   │   └── L_Shape.asset
+│   └── Levels/
+│       ├── Level_01.asset
+│       ├── Level_02.asset
+│       ├── Level_03.asset
+│       ├── Level_04.asset
+│       ├── Level_05.asset
+│       ├── Level_06.asset
+│       └── Level_07.asset
 │
 └── Resources/
-    └── Audio/
-        ├── Music/
-        └── SFX/
+    ├── Audio/
+    │   ├── Music/
+    │   └── SFX/
+    │       ├── place_piece.wav
+    │       ├── level_complete.wav
+    │       ├── invalid_place.wav
+    │       └── ui_click.wav
+    └── Images/
+        └── LevelTargets/
+            ├── level_01.png (15x15)
+            ├── level_02.png
+            ├── level_03.png
+            ├── level_04.png
+            ├── level_05.png
+            ├── level_06.png
+            └── level_07.png
