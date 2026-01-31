@@ -34,6 +34,8 @@
 │   ├── Test/
 │   │   ├── AudioServiceTest.cs
 │   │   ├── GameStateTest.cs
+│   │   ├── PuzzleTestController.cs
+│   │   ├── PuzzleTestManager.cs
 │   │   └── CameraServiceTest.cs
 │   │
 │   ├── UI/

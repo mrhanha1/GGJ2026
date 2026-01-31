@@ -355,6 +355,85 @@ public partial class @GameInputActions: IInputActionCollection2, IDisposable
                     ""isPartOfComposite"": false
                 }
             ]
+        },
+        {
+            ""name"": ""Puzzle"",
+            ""id"": ""0aed2747-df80-48f0-8a4d-65746dc9229b"",
+            ""actions"": [
+                {
+                    ""name"": ""Point"",
+                    ""type"": ""Value"",
+                    ""id"": ""ce87f091-3797-4885-a684-141027930885"",
+                    ""expectedControlType"": ""Vector2"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": true
+                },
+                {
+                    ""name"": ""Click"",
+                    ""type"": ""Button"",
+                    ""id"": ""a7b24b9a-5a09-49db-a1a9-abea12a88ab2"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Submit"",
+                    ""type"": ""Button"",
+                    ""id"": ""53df871f-4d37-43ed-89ca-270add2f5957"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                }
+            ],
+            ""bindings"": [
+                {
+                    ""name"": """",
+                    ""id"": ""0acbb549-9d98-40d1-8cbc-9fc0fa54dfbf"",
+                    ""path"": ""<Mouse>/position"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Point"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""3b7d1c02-0c85-439f-b7b3-506636aa84e9"",
+                    ""path"": ""<Mouse>/leftButton"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Click"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""d808ec6f-7a0c-4060-b2ee-68998613ce9e"",
+                    ""path"": ""<Mouse>/rightButton"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Submit"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""71b21a56-81be-4a21-8460-81b0c5864a07"",
+                    ""path"": ""<Keyboard>/r"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Submit"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                }
+            ]
         }
     ],
     ""controlSchemes"": []
@@ -375,6 +454,11 @@ public partial class @GameInputActions: IInputActionCollection2, IDisposable
         // UI
         m_UI = asset.FindActionMap("UI", throwIfNotFound: true);
         m_UI_Click = m_UI.FindAction("Click", throwIfNotFound: true);
+        // Puzzle
+        m_Puzzle = asset.FindActionMap("Puzzle", throwIfNotFound: true);
+        m_Puzzle_Point = m_Puzzle.FindAction("Point", throwIfNotFound: true);
+        m_Puzzle_Click = m_Puzzle.FindAction("Click", throwIfNotFound: true);
+        m_Puzzle_Submit = m_Puzzle.FindAction("Submit", throwIfNotFound: true);
     }
 
     ~@GameInputActions()
@@ -382,6 +466,7 @@ public partial class @GameInputActions: IInputActionCollection2, IDisposable
         UnityEngine.Debug.Assert(!m_Player.enabled, "This will cause a leak and performance issues, GameInputActions.Player.Disable() has not been called.");
         UnityEngine.Debug.Assert(!m_GameState.enabled, "This will cause a leak and performance issues, GameInputActions.GameState.Disable() has not been called.");
         UnityEngine.Debug.Assert(!m_UI.enabled, "This will cause a leak and performance issues, GameInputActions.UI.Disable() has not been called.");
+        UnityEngine.Debug.Assert(!m_Puzzle.enabled, "This will cause a leak and performance issues, GameInputActions.Puzzle.Disable() has not been called.");
     }
 
     /// <summary>
@@ -818,6 +903,124 @@ public partial class @GameInputActions: IInputActionCollection2, IDisposable
     /// Provides a new <see cref="UIActions" /> instance referencing this action map.
     /// </summary>
     public UIActions @UI => new UIActions(this);
+
+    // Puzzle
+    private readonly InputActionMap m_Puzzle;
+    private List<IPuzzleActions> m_PuzzleActionsCallbackInterfaces = new List<IPuzzleActions>();
+    private readonly InputAction m_Puzzle_Point;
+    private readonly InputAction m_Puzzle_Click;
+    private readonly InputAction m_Puzzle_Submit;
+    /// <summary>
+    /// Provides access to input actions defined in input action map "Puzzle".
+    /// </summary>
+    public struct PuzzleActions
+    {
+        private @GameInputActions m_Wrapper;
+
+        /// <summary>
+        /// Construct a new instance of the input action map wrapper class.
+        /// </summary>
+        public PuzzleActions(@GameInputActions wrapper) { m_Wrapper = wrapper; }
+        /// <summary>
+        /// Provides access to the underlying input action "Puzzle/Point".
+        /// </summary>
+        public InputAction @Point => m_Wrapper.m_Puzzle_Point;
+        /// <summary>
+        /// Provides access to the underlying input action "Puzzle/Click".
+        /// </summary>
+        public InputAction @Click => m_Wrapper.m_Puzzle_Click;
+        /// <summary>
+        /// Provides access to the underlying input action "Puzzle/Submit".
+        /// </summary>
+        public InputAction @Submit => m_Wrapper.m_Puzzle_Submit;
+        /// <summary>
+        /// Provides access to the underlying input action map instance.
+        /// </summary>
+        public InputActionMap Get() { return m_Wrapper.m_Puzzle; }
+        /// <inheritdoc cref="UnityEngine.InputSystem.InputActionMap.Enable()" />
+        public void Enable() { Get().Enable(); }
+        /// <inheritdoc cref="UnityEngine.InputSystem.InputActionMap.Disable()" />
+        public void Disable() { Get().Disable(); }
+        /// <inheritdoc cref="UnityEngine.InputSystem.InputActionMap.enabled" />
+        public bool enabled => Get().enabled;
+        /// <summary>
+        /// Implicitly converts an <see ref="PuzzleActions" /> to an <see ref="InputActionMap" /> instance.
+        /// </summary>
+        public static implicit operator InputActionMap(PuzzleActions set) { return set.Get(); }
+        /// <summary>
+        /// Adds <see cref="InputAction.started"/>, <see cref="InputAction.performed"/> and <see cref="InputAction.canceled"/> callbacks provided via <param cref="instance" /> on all input actions contained in this map.
+        /// </summary>
+        /// <param name="instance">Callback instance.</param>
+        /// <remarks>
+        /// If <paramref name="instance" /> is <c>null</c> or <paramref name="instance"/> have already been added this method does nothing.
+        /// </remarks>
+        /// <seealso cref="PuzzleActions" />
+        public void AddCallbacks(IPuzzleActions instance)
+        {
+            if (instance == null || m_Wrapper.m_PuzzleActionsCallbackInterfaces.Contains(instance)) return;
+            m_Wrapper.m_PuzzleActionsCallbackInterfaces.Add(instance);
+            @Point.started += instance.OnPoint;
+            @Point.performed += instance.OnPoint;
+            @Point.canceled += instance.OnPoint;
+            @Click.started += instance.OnClick;
+            @Click.performed += instance.OnClick;
+            @Click.canceled += instance.OnClick;
+            @Submit.started += instance.OnSubmit;
+            @Submit.performed += instance.OnSubmit;
+            @Submit.canceled += instance.OnSubmit;
+        }
+
+        /// <summary>
+        /// Removes <see cref="InputAction.started"/>, <see cref="InputAction.performed"/> and <see cref="InputAction.canceled"/> callbacks provided via <param cref="instance" /> on all input actions contained in this map.
+        /// </summary>
+        /// <remarks>
+        /// Calling this method when <paramref name="instance" /> have not previously been registered has no side-effects.
+        /// </remarks>
+        /// <seealso cref="PuzzleActions" />
+        private void UnregisterCallbacks(IPuzzleActions instance)
+        {
+            @Point.started -= instance.OnPoint;
+            @Point.performed -= instance.OnPoint;
+            @Point.canceled -= instance.OnPoint;
+            @Click.started -= instance.OnClick;
+            @Click.performed -= instance.OnClick;
+            @Click.canceled -= instance.OnClick;
+            @Submit.started -= instance.OnSubmit;
+            @Submit.performed -= instance.OnSubmit;
+            @Submit.canceled -= instance.OnSubmit;
+        }
+
+        /// <summary>
+        /// Unregisters <param cref="instance" /> and unregisters all input action callbacks via <see cref="PuzzleActions.UnregisterCallbacks(IPuzzleActions)" />.
+        /// </summary>
+        /// <seealso cref="PuzzleActions.UnregisterCallbacks(IPuzzleActions)" />
+        public void RemoveCallbacks(IPuzzleActions instance)
+        {
+            if (m_Wrapper.m_PuzzleActionsCallbackInterfaces.Remove(instance))
+                UnregisterCallbacks(instance);
+        }
+
+        /// <summary>
+        /// Replaces all existing callback instances and previously registered input action callbacks associated with them with callbacks provided via <param cref="instance" />.
+        /// </summary>
+        /// <remarks>
+        /// If <paramref name="instance" /> is <c>null</c>, calling this method will only unregister all existing callbacks but not register any new callbacks.
+        /// </remarks>
+        /// <seealso cref="PuzzleActions.AddCallbacks(IPuzzleActions)" />
+        /// <seealso cref="PuzzleActions.RemoveCallbacks(IPuzzleActions)" />
+        /// <seealso cref="PuzzleActions.UnregisterCallbacks(IPuzzleActions)" />
+        public void SetCallbacks(IPuzzleActions instance)
+        {
+            foreach (var item in m_Wrapper.m_PuzzleActionsCallbackInterfaces)
+                UnregisterCallbacks(item);
+            m_Wrapper.m_PuzzleActionsCallbackInterfaces.Clear();
+            AddCallbacks(instance);
+        }
+    }
+    /// <summary>
+    /// Provides a new <see cref="PuzzleActions" /> instance referencing this action map.
+    /// </summary>
+    public PuzzleActions @Puzzle => new PuzzleActions(this);
     /// <summary>
     /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "Player" which allows adding and removing callbacks.
     /// </summary>
@@ -911,5 +1114,34 @@ public partial class @GameInputActions: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnClick(InputAction.CallbackContext context);
+    }
+    /// <summary>
+    /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "Puzzle" which allows adding and removing callbacks.
+    /// </summary>
+    /// <seealso cref="PuzzleActions.AddCallbacks(IPuzzleActions)" />
+    /// <seealso cref="PuzzleActions.RemoveCallbacks(IPuzzleActions)" />
+    public interface IPuzzleActions
+    {
+        /// <summary>
+        /// Method invoked when associated input action "Point" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnPoint(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "Click" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnClick(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "Submit" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnSubmit(InputAction.CallbackContext context);
     }
 }

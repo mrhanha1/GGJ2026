@@ -20,6 +20,8 @@ namespace Game.Services.Input
         /// </summary>
         GameInputActions.GameStateActions GameState { get; }
 
+        GameInputActions.PuzzleActions Puzzle { get; }
+
         /// <summary>
         /// Enable all action maps
         /// </summary>

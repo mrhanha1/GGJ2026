@@ -13,6 +13,7 @@ namespace Game.Services.Input
         public GameInputActions.PlayerActions Player => _inputActions.Player;
         public GameInputActions.UIActions UI => _inputActions.UI;
         public GameInputActions.GameStateActions GameState => _inputActions.GameState;
+        public GameInputActions.PuzzleActions Puzzle => _inputActions.Puzzle;
 
         public void Initialize()
         {
