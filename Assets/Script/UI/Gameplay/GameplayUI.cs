@@ -1,55 +1,73 @@
 using UnityEngine;
-using Game.Core;
-using Game.Services.GameState;
+using UnityEngine.UI;
+using PuzzleGame.Gameplay;
 
-namespace Game.UI
+namespace PuzzleGame.UI.Gameplay
 {
     /// <summary>
-    /// Gameplay UI controller.
+    /// Main UI controller for Gameplay scene
     /// </summary>
     public class GameplayUI : MonoBehaviour
     {
-        [Header("Panels")]
-        [SerializeField] private WinPanel winPanel;
-        [SerializeField] private LosePanel losePanel;
+        [Header("References")]
+        [SerializeField] private PuzzleManager puzzleManager;
 
-        private IGameStateService _gameStateService;
-
+        [Header("UI Elements")]
+        [SerializeField] private Text levelText;
+        [SerializeField] private Text modeText;
+        [Header("Test Buttons (Remove in production)")]
+        [SerializeField] private Button completeButton;
         private void Start()
         {
-            _gameStateService = ServiceLocator.Instance.Get<IGameStateService>();
-
-            if (_gameStateService != null)
+            UpdateUI();
+            if (completeButton != null)
             {
-                _gameStateService.OnWin += OnWin;
-                _gameStateService.OnLose += OnLose;
+                completeButton.onClick.AddListener(TestCompleteLevel);
+            }
+        }
+
+        private void Update()
+        {
+            // Update UI if level changes
+            UpdateUI();
+        }
+
+        /// <summary>
+        /// Update level and mode display
+        /// </summary>
+        public void UpdateUI()
+        {
+            if (puzzleManager == null)
+                return;
+
+            // Update level text
+            if (levelText != null)
+            {
+                int currentLevel = puzzleManager.CurrentLevelIndex + 1;
+                int totalLevels = puzzleManager.TotalLevels;
+                levelText.text = $"Level {currentLevel}/{totalLevels}";
             }
 
-            // Hide panels initially
-            if (winPanel != null)
-                winPanel.gameObject.SetActive(false);
-            if (losePanel != null)
-                losePanel.gameObject.SetActive(false);
-        }
-
-        private void OnWin()
-        {
-            if (winPanel != null)
-                winPanel.Show();
-        }
-
-        private void OnLose()
-        {
-            if (losePanel != null)
-                losePanel.Show();
-        }
-
-        private void OnDestroy()
-        {
-            if (_gameStateService != null)
+            // Update mode text
+            if (modeText != null && puzzleManager.CurrentLevel != null)
             {
-                _gameStateService.OnWin -= OnWin;
-                _gameStateService.OnLose -= OnLose;
+                //var board = FindObjectOfType<PuzzleGame.Gameplay.Board.PuzzleBoard>();
+                var board = FindAnyObjectByType<PuzzleGame.Gameplay.Board.PuzzleBoard>();
+                if (board != null && board.Settings != null)
+                {
+                    string fillMode = board.Settings.FillAllTiles ? "Fill All" : "Fill Targets";
+                    string placeMode = board.Settings.RequireFullyInside ? "Inside Only" : "Partial OK";
+                    modeText.text = $"{fillMode} | {placeMode}";
+                }
+            }
+        }
+        private void TestCompleteLevel()
+        {
+            var gameState = Game.Core.ServiceLocator.Instance.Get<Game.Services.GameState.IGameStateService>();
+            if (gameState != null)
+            {
+                gameState.TriggerWin();
+                Debug.Log("[GameplayUI] Test Complete - Triggered Win!");
             }
         }
     }

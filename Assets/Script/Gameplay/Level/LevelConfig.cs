@@ -2,177 +2,135 @@ using UnityEngine;
 
 namespace PuzzleGame.Gameplay.Level
 {
-    /// <summary>
-    /// Configuration for a puzzle level with target map
-    /// </summary>
-    [CreateAssetMenu(fileName = "Level_01", menuName = "Puzzle Game/Level Config")]
+    [CreateAssetMenu(fileName = "Level_", menuName = "Puzzle Game/Level Config")]
     public class LevelConfig : ScriptableObject
     {
         [Header("Level Info")]
-        [SerializeField] private int levelIndex = 1;
         [SerializeField] private string levelName = "Level 1";
+        [SerializeField] private int levelIndex = 1;
+
+        [Header("Time Limit (NEW)")]
+        [SerializeField] private float timeLimit = 120f; // seconds (default 2 minutes)
 
         [Header("Target Image")]
         [SerializeField] private Texture2D targetImage; // 15x15 pixel image
 
-        [Header("Target Map (15x15)")]
-        [SerializeField] private bool[] targetMapFlat = new bool[225]; // 15x15 = 225
-
-        // Runtime target map
-        private bool[,] targetMap;
+        [Header("Target Map")]
+        [SerializeField] private bool[,] targetMap = new bool[15, 15];
 
         /// <summary>
-        /// Get target map as 2D array
+        /// Get pixel color at position from target image
         /// </summary>
-        public bool[,] GetTargetMap()
+        public Color GetPixelColor(int x, int y)
         {
-            if (targetMap == null)
-            {
-                ConvertFlatToMap();
-            }
-            return targetMap;
+            if (targetImage == null)
+                return Color.clear;
+
+            if (x < 0 || x >= targetImage.width || y < 0 || y >= targetImage.height)
+                return Color.clear;
+
+            return targetImage.GetPixel(x, y);
         }
 
         /// <summary>
-        /// Convert flat array to 2D map
-        /// </summary>
-        private void ConvertFlatToMap()
-        {
-            targetMap = new bool[15, 15];
-            for (int x = 0; x < 15; x++)
-            {
-                for (int y = 0; y < 15; y++)
-                {
-                    int index = y * 15 + x;
-                    targetMap[x, y] = targetMapFlat[index];
-                }
-            }
-        }
-
-        /// <summary>
-        /// Set target tile at position (for editor)
-        /// </summary>
-        public void SetTargetTile(int x, int y, bool value)
-        {
-            if (x < 0 || x >= 15 || y < 0 || y >= 15)
-                return;
-
-            int index = y * 15 + x;
-            targetMapFlat[index] = value;
-
-            // Update runtime map if exists
-            if (targetMap != null)
-            {
-                targetMap[x, y] = value;
-            }
-        }
-
-        /// <summary>
-        /// Get target tile at position
+        /// Check if position is a target tile
         /// </summary>
         public bool IsTargetTile(int x, int y)
         {
             if (x < 0 || x >= 15 || y < 0 || y >= 15)
                 return false;
 
-            int index = y * 15 + x;
-            return targetMapFlat[index];
+            return targetMap[x, y];
         }
 
+        // Getters
+        public string LevelName => levelName;
+        public int LevelIndex => levelIndex;
+        public float TimeLimit => timeLimit; // NEW
+        public Texture2D TargetImage => targetImage;
+        public bool[,] TargetMap => targetMap;
+
+#if UNITY_EDITOR
         /// <summary>
-        /// Get pixel color from target image
-        /// </summary>
-        public Color GetPixelColor(int x, int y)
-        {
-            if (targetImage == null || x < 0 || x >= 15 || y < 0 || y >= 15)
-                return Color.clear;
-
-            // Ensure texture is readable
-            if (!targetImage.isReadable)
-            {
-                Debug.LogWarning($"[LevelConfig] Target image '{targetImage.name}' is not readable!");
-                return Color.clear;
-            }
-
-            return targetImage.GetPixel(x, y);
-        }
-
-        /// <summary>
-        /// Import target map from image (for editor)
+        /// Import target map from target image
         /// </summary>
         public void ImportFromImage()
         {
             if (targetImage == null)
             {
-                Debug.LogWarning("[LevelConfig] No target image assigned!");
-                return;
-            }
-
-            if (!targetImage.isReadable)
-            {
-                Debug.LogError("[LevelConfig] Target image must be readable! Enable Read/Write in import settings.");
+                Debug.LogWarning("No target image assigned!");
                 return;
             }
 
             if (targetImage.width != 15 || targetImage.height != 15)
             {
-                Debug.LogError("[LevelConfig] Target image must be exactly 15x15 pixels!");
+                Debug.LogWarning("Target image must be 15x15 pixels!");
                 return;
             }
 
-            // Import: non-transparent pixels = target tiles
+            targetMap = new bool[15, 15];
+
             for (int x = 0; x < 15; x++)
             {
                 for (int y = 0; y < 15; y++)
                 {
                     Color pixel = targetImage.GetPixel(x, y);
-                    bool isTarget = pixel.a > 0.5f; // Alpha > 0.5 = target
-                    SetTargetTile(x, y, isTarget);
+                    // Consider pixel as target if alpha > 0.1
+                    targetMap[x, y] = pixel.a > 0.1f;
                 }
             }
 
-            Debug.Log($"[LevelConfig] Imported target map from image '{targetImage.name}'");
+            Debug.Log("Target map imported from image!");
         }
 
         /// <summary>
-        /// Fill all tiles as target
+        /// Set target tile at position
+        /// </summary>
+        public void SetTargetTile(int x, int y, bool isTarget)
+        {
+            if (x < 0 || x >= 15 || y < 0 || y >= 15)
+                return;
+
+            targetMap[x, y] = isTarget;
+        }
+
+        /// <summary>
+        /// Fill all tiles as targets
         /// </summary>
         public void FillAll()
         {
-            for (int i = 0; i < targetMapFlat.Length; i++)
+            targetMap = new bool[15, 15];
+            for (int x = 0; x < 15; x++)
             {
-                targetMapFlat[i] = true;
+                for (int y = 0; y < 15; y++)
+                {
+                    targetMap[x, y] = true;
+                }
             }
-            targetMap = null; // Force rebuild
         }
 
         /// <summary>
-        /// Clear all target tiles
+        /// Clear all tiles
         /// </summary>
         public void ClearAll()
         {
-            for (int i = 0; i < targetMapFlat.Length; i++)
-            {
-                targetMapFlat[i] = false;
-            }
-            targetMap = null; // Force rebuild
+            targetMap = new bool[15, 15];
         }
 
         /// <summary>
-        /// Invert all target tiles
+        /// Invert all tiles
         /// </summary>
         public void InvertAll()
         {
-            for (int i = 0; i < targetMapFlat.Length; i++)
+            for (int x = 0; x < 15; x++)
             {
-                targetMapFlat[i] = !targetMapFlat[i];
+                for (int y = 0; y < 15; y++)
+                {
+                    targetMap[x, y] = !targetMap[x, y];
+                }
             }
-            targetMap = null; // Force rebuild
         }
-
-        // Getters
-        public int LevelIndex => levelIndex;
-        public string LevelName => levelName;
-        public Texture2D TargetImage => targetImage;
+#endif
     }
+
 }

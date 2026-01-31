@@ -78,6 +78,12 @@ namespace PuzzleGame.Gameplay.Board
 
             currentLevel = level;
 
+            // Reset board state (clear all tiles)
+            ResetBoardState();
+
+            // Set target map from level config (IMPORTANT: must be before ShowTargetOverlay)
+            SetTargetMap(level.TargetMap);
+
             // Show target image as background
             ShowTargetImage();
 
@@ -85,6 +91,31 @@ namespace PuzzleGame.Gameplay.Board
             ShowTargetOverlay();
 
             Debug.Log($"[PuzzleBoard] Loaded level: {level.LevelName}");
+        }
+
+        /// <summary>
+        /// Reset board state (clear all tiles but keep targetMap)
+        /// </summary>
+        private void ResetBoardState()
+        {
+            boardState = new bool[boardWidth, boardHeight];
+
+            // Fill board with empty tiles
+            for (int x = 0; x < boardWidth; x++)
+            {
+                for (int y = 0; y < boardHeight; y++)
+                {
+                    Vector3Int pos = new Vector3Int(x, y, 0);
+                    tilemap.SetTile(pos, emptyTile);
+                    boardState[x, y] = false;
+                }
+            }
+
+            // Clear background and overlay
+            if (backgroundTilemap != null)
+                backgroundTilemap.ClearAllTiles();
+            if (overlayTilemap != null)
+                overlayTilemap.ClearAllTiles();
         }
 
         /// <summary>
@@ -128,6 +159,7 @@ namespace PuzzleGame.Gameplay.Board
         /// </summary>
         public void ShowTargetOverlay()
         {
+            Debug.Log($"[ShowTargetOverlay] overlayTilemap={overlayTilemap != null}, settings={settings != null}, fillAllTiles={settings?.FillAllTiles}");
             if (overlayTilemap == null || settings == null)
                 return;
 
@@ -155,17 +187,52 @@ namespace PuzzleGame.Gameplay.Board
         }
 
         /// <summary>
-        /// Get colored tile based on pixel color (NEW)
-        /// Simple color matching - can be improved
+        /// Get colored tile based on pixel color
+        /// Matches color to closest tile in coloredTiles array
         /// </summary>
         private TileBase GetColoredTileFromColor(Color color)
         {
             if (coloredTiles == null || coloredTiles.Length == 0)
                 return filledTile; // Fallback to filled tile
 
-            // Simple approach: use first colored tile
-            // You can improve this by matching actual colors
-            return coloredTiles[0];
+            // Define standard colors for matching (7 colors)
+            Color[] standardColors = new Color[]
+            {
+                Color.red,      // 0
+                Color.green,    // 1
+                Color.blue,     // 2
+                Color.yellow,   // 3
+                Color.magenta,  // 4
+                Color.cyan,     // 5
+                Color.white     // 6
+            };
+
+            // Find closest color match
+            int closestIndex = 0;
+            float closestDistance = float.MaxValue;
+
+            for (int i = 0; i < standardColors.Length && i < coloredTiles.Length; i++)
+            {
+                float distance = ColorDistance(color, standardColors[i]);
+                if (distance < closestDistance)
+                {
+                    closestDistance = distance;
+                    closestIndex = i;
+                }
+            }
+
+            return coloredTiles[closestIndex];
+        }
+
+        /// <summary>
+        /// Calculate distance between two colors
+        /// </summary>
+        private float ColorDistance(Color a, Color b)
+        {
+            float dr = a.r - b.r;
+            float dg = a.g - b.g;
+            float db = a.b - b.b;
+            return dr * dr + dg * dg + db * db;
         }
 
         /// <summary>
@@ -207,6 +274,12 @@ namespace PuzzleGame.Gameplay.Board
                 Debug.LogError("Target map size mismatch!");
                 return;
             }
+            Debug.Log($"[SetTargetMap] Map size: {map.GetLength(0)}x{map.GetLength(1)}");
+            int count = 0;
+            for (int x = 0; x < 15; x++)
+                for (int y = 0; y < 15; y++)
+                    if (map[x, y]) count++;
+            Debug.Log($"[SetTargetMap] Total target tiles: {count}");
 
             targetMap = map;
         }
@@ -274,10 +347,12 @@ namespace PuzzleGame.Gameplay.Board
 
         /// <summary>
         /// Check if level is complete based on settings
+        /// FIXED: Prevents false positive when level not loaded yet
         /// </summary>
         public bool IsComplete()
         {
-            if (settings == null)
+            // CRITICAL: Check if level is loaded
+            if (settings == null || currentLevel == null)
                 return false;
 
             if (settings.FillAllTiles)
@@ -295,16 +370,27 @@ namespace PuzzleGame.Gameplay.Board
             }
             else
             {
+                // FIXED: Check if targetMap has any targets first
+                bool hasAnyTarget = false;
+
                 // Check if all target tiles are filled
                 for (int x = 0; x < boardWidth; x++)
                 {
                     for (int y = 0; y < boardHeight; y++)
                     {
-                        if (targetMap[x, y] && !boardState[x, y])
-                            return false;
+                        if (targetMap[x, y])
+                        {
+                            hasAnyTarget = true;
+
+                            // If target tile is not filled, level not complete
+                            if (!boardState[x, y])
+                                return false;
+                        }
                     }
                 }
-                return true;
+
+                // Only return true if there are targets AND all are filled
+                return hasAnyTarget;
             }
         }
 

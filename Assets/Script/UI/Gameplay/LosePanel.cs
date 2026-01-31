@@ -3,6 +3,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using Game.Core;
+using PuzzleGame.Gameplay;
 
 namespace Game.UI
 {
@@ -16,20 +17,32 @@ namespace Game.UI
         [SerializeField] private Button mainMenuButton;
 
         private SceneLoader _sceneLoader;
+        private PuzzleManager _puzzleManager; // NEW
 
         protected override void Awake()
         {
             base.Awake();
 
             _sceneLoader = ServiceLocator.Instance.Get<SceneLoader>();
+            _puzzleManager = FindObjectOfType<PuzzleManager>(); // NEW
 
             restartButton.onClick.AddListener(OnRestartClicked);
             mainMenuButton.onClick.AddListener(OnMainMenuClicked);
         }
 
+        // UPDATED: Restart current level logic
         private void OnRestartClicked()
         {
-            _sceneLoader.LoadScene(SceneNames.Gameplay);
+            if (_puzzleManager != null)
+            {
+                _puzzleManager.RestartLevel();
+                Hide();
+            }
+            else
+            {
+                // Fallback: reload scene
+                _sceneLoader.LoadScene(SceneNames.Gameplay);
+            }
         }
 
         private void OnMainMenuClicked()
