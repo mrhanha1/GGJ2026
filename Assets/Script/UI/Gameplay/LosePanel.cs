@@ -24,7 +24,7 @@ namespace Game.UI
             base.Awake();
 
             _sceneLoader = ServiceLocator.Instance.Get<SceneLoader>();
-            _puzzleManager = FindObjectOfType<PuzzleManager>(); // NEW
+            _puzzleManager = FindAnyObjectByType<PuzzleManager>(); // NEW
 
             restartButton.onClick.AddListener(OnRestartClicked);
             mainMenuButton.onClick.AddListener(OnMainMenuClicked);

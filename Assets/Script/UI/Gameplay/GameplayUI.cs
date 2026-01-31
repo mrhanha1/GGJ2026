@@ -63,11 +63,9 @@ namespace PuzzleGame.UI.Gameplay
         }
         private void TestCompleteLevel()
         {
-            var gameState = Game.Core.ServiceLocator.Instance.Get<Game.Services.GameState.IGameStateService>();
-            if (gameState != null)
+            if (puzzleManager != null)
             {
-                gameState.TriggerWin();
-                Debug.Log("[GameplayUI] Test Complete - Triggered Win!");
+                puzzleManager.ForceCompleteLevel();
             }
         }
     }

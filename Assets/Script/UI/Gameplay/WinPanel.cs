@@ -25,8 +25,7 @@ namespace Game.UI
             base.Awake();
 
             _sceneLoader = ServiceLocator.Instance.Get<SceneLoader>();
-            _puzzleManager = FindObjectOfType<PuzzleManager>(); // NEW
-
+            _puzzleManager = FindAnyObjectByType<PuzzleManager>(); // NEW
             // NEW: Next button
             if (nextButton != null)
                 nextButton.onClick.AddListener(OnNextClicked);

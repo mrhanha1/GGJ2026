@@ -1,9 +1,10 @@
-using UnityEngine;
+﻿using UnityEngine;
 using PuzzleGame.Gameplay.Board;
 using PuzzleGame.Gameplay.Level;
 using Game.Services.GameState;
 using PuzzleGame.Gameplay.Timer;
 using Game.Core;
+using UnityEngine.UI;
 
 namespace PuzzleGame.Gameplay
 {
@@ -15,13 +16,20 @@ namespace PuzzleGame.Gameplay
         [Header("References")]
         [SerializeField] private PuzzleBoard board;
         [SerializeField] private TimerService timerService; // NEW
+        [SerializeField] private Animator mascotAnimator; // NEW: Mascot animator for win animations
+        [SerializeField] private Game.UI.WinPanel winPanel; // NEW: Win panel to show after animation
 
         [Header("Levels")]
         [SerializeField] private LevelConfig[] levels;
         [SerializeField] private int currentLevelIndex = 0;
 
+        [Header("Animation Settings")]
+        [SerializeField] private float winAnimationDelay = 3f; // Delay before showing win panel
+        [SerializeField] private Button skiplevelbutton;
+
         private IGameStateService gameState;
         private bool isLevelComplete = false;
+        private Coroutine winAnimationCoroutine; // Track win animation coroutine
 
         private void Start()
         {
@@ -33,13 +41,14 @@ namespace PuzzleGame.Gameplay
                 Debug.LogError("[PuzzleManager] GameStateService not found!");
                 return;
             }
+            gameState.SetState(GameState.Playing);
 
             // Subscribe to timer events (NEW)
             if (timerService != null)
             {
                 timerService.OnTimeUp += OnTimeUp;
             }
-
+            
             // Load first level
             LoadLevel(currentLevelIndex);
         }
@@ -85,6 +94,20 @@ namespace PuzzleGame.Gameplay
             // Reset state
             isLevelComplete = false;
 
+            // Reset mascot animator win parameter to -1
+            if (mascotAnimator != null)
+            {
+                mascotAnimator.SetInteger("win", -1);
+                Debug.Log("[PuzzleManager] Reset mascot win parameter to -1");
+            }
+
+            // Stop any ongoing win animation coroutine
+            if (winAnimationCoroutine != null)
+            {
+                StopCoroutine(winAnimationCoroutine);
+                winAnimationCoroutine = null;
+            }
+
             // Load level on board
             if (board != null)
             {
@@ -108,19 +131,30 @@ namespace PuzzleGame.Gameplay
         {
             isLevelComplete = true;
 
-            // Stop timer (NEW)
+            // Stop timer
             if (timerService != null)
             {
                 timerService.StopTimer();
             }
 
-            // Trigger win state
-            if (gameState != null)
+            // Set mascot animator win parameter to current level index
+            if (mascotAnimator != null)
             {
-                gameState.TriggerWin();
+                mascotAnimator.SetInteger("win", currentLevelIndex);
+                Debug.Log($"[PuzzleManager] Set mascot win parameter to {currentLevelIndex}");
             }
 
+            // Start coroutine to delay win panel
+            winAnimationCoroutine = StartCoroutine(ShowWinPanelAfterDelay());
+
             Debug.Log($"[PuzzleManager] Level {currentLevelIndex + 1} completed!");
+        }
+        public void ForceCompleteLevel()
+        {
+            if (isLevelComplete)
+                return;
+
+            OnLevelComplete();
         }
 
         /// <summary>
@@ -138,6 +172,30 @@ namespace PuzzleGame.Gameplay
             }
 
             Debug.Log("[PuzzleManager] Time's up! You lose.");
+        }
+
+        /// <summary>
+        /// Coroutine to show win panel after animation delay
+        /// </summary>
+        private System.Collections.IEnumerator ShowWinPanelAfterDelay()
+        {
+            // Wait for animation delay (3 seconds)
+            yield return new UnityEngine.WaitForSeconds(winAnimationDelay);
+
+            // Trigger win state
+            if (gameState != null)
+            {
+                gameState.TriggerWin();
+            }
+
+            // Show win panel
+            if (winPanel != null)
+            {
+                winPanel.Show();
+                Debug.Log("[PuzzleManager] Win panel shown after animation");
+            }
+
+            winAnimationCoroutine = null;
         }
 
         /// <summary>

@@ -9,14 +9,48 @@ namespace PuzzleGame.Gameplay.Level
         [SerializeField] private string levelName = "Level 1";
         [SerializeField] private int levelIndex = 1;
 
-        [Header("Time Limit (NEW)")]
+        [Header("Time Limit")]
         [SerializeField] private float timeLimit = 120f; // seconds (default 2 minutes)
 
         [Header("Target Image")]
         [SerializeField] private Texture2D targetImage; // 15x15 pixel image
 
-        [Header("Target Map")]
-        [SerializeField] private bool[,] targetMap = new bool[15, 15];
+        [Header("Target Map (15x15 = 225 cells)")]
+        [SerializeField] private bool[] targetMapFlat = new bool[225]; // 15x15 flattened
+
+        // Runtime 2D map cache
+        private bool[,] targetMapCache;
+
+        /// <summary>
+        /// Get target map as 2D array
+        /// </summary>
+        public bool[,] TargetMap
+        {
+            get
+            {
+                if (targetMapCache == null)
+                {
+                    ConvertFlatTo2D();
+                }
+                return targetMapCache;
+            }
+        }
+
+        /// <summary>
+        /// Convert flat array to 2D map
+        /// </summary>
+        private void ConvertFlatTo2D()
+        {
+            targetMapCache = new bool[15, 15];
+            for (int x = 0; x < 15; x++)
+            {
+                for (int y = 0; y < 15; y++)
+                {
+                    int index = y * 15 + x;
+                    targetMapCache[x, y] = targetMapFlat[index];
+                }
+            }
+        }
 
         /// <summary>
         /// Get pixel color at position from target image
@@ -40,15 +74,15 @@ namespace PuzzleGame.Gameplay.Level
             if (x < 0 || x >= 15 || y < 0 || y >= 15)
                 return false;
 
-            return targetMap[x, y];
+            int index = y * 15 + x;
+            return targetMapFlat[index];
         }
 
         // Getters
         public string LevelName => levelName;
         public int LevelIndex => levelIndex;
-        public float TimeLimit => timeLimit; // NEW
+        public float TimeLimit => timeLimit;
         public Texture2D TargetImage => targetImage;
-        public bool[,] TargetMap => targetMap;
 
 #if UNITY_EDITOR
         /// <summary>
@@ -68,18 +102,19 @@ namespace PuzzleGame.Gameplay.Level
                 return;
             }
 
-            targetMap = new bool[15, 15];
-
             for (int x = 0; x < 15; x++)
             {
                 for (int y = 0; y < 15; y++)
                 {
                     Color pixel = targetImage.GetPixel(x, y);
+                    int index = y * 15 + x;
                     // Consider pixel as target if alpha > 0.1
-                    targetMap[x, y] = pixel.a > 0.1f;
+                    targetMapFlat[index] = pixel.a > 0.1f;
                 }
             }
 
+            targetMapCache = null; // Clear cache
+            UnityEditor.EditorUtility.SetDirty(this);
             Debug.Log("Target map imported from image!");
         }
 
@@ -91,7 +126,10 @@ namespace PuzzleGame.Gameplay.Level
             if (x < 0 || x >= 15 || y < 0 || y >= 15)
                 return;
 
-            targetMap[x, y] = isTarget;
+            int index = y * 15 + x;
+            targetMapFlat[index] = isTarget;
+            targetMapCache = null; // Clear cache
+            UnityEditor.EditorUtility.SetDirty(this);
         }
 
         /// <summary>
@@ -99,14 +137,12 @@ namespace PuzzleGame.Gameplay.Level
         /// </summary>
         public void FillAll()
         {
-            targetMap = new bool[15, 15];
-            for (int x = 0; x < 15; x++)
+            for (int i = 0; i < targetMapFlat.Length; i++)
             {
-                for (int y = 0; y < 15; y++)
-                {
-                    targetMap[x, y] = true;
-                }
+                targetMapFlat[i] = true;
             }
+            targetMapCache = null; // Clear cache
+            UnityEditor.EditorUtility.SetDirty(this);
         }
 
         /// <summary>
@@ -114,7 +150,12 @@ namespace PuzzleGame.Gameplay.Level
         /// </summary>
         public void ClearAll()
         {
-            targetMap = new bool[15, 15];
+            for (int i = 0; i < targetMapFlat.Length; i++)
+            {
+                targetMapFlat[i] = false;
+            }
+            targetMapCache = null; // Clear cache
+            UnityEditor.EditorUtility.SetDirty(this);
         }
 
         /// <summary>
@@ -122,15 +163,13 @@ namespace PuzzleGame.Gameplay.Level
         /// </summary>
         public void InvertAll()
         {
-            for (int x = 0; x < 15; x++)
+            for (int i = 0; i < targetMapFlat.Length; i++)
             {
-                for (int y = 0; y < 15; y++)
-                {
-                    targetMap[x, y] = !targetMap[x, y];
-                }
+                targetMapFlat[i] = !targetMapFlat[i];
             }
+            targetMapCache = null; // Clear cache
+            UnityEditor.EditorUtility.SetDirty(this);
         }
 #endif
     }
-
 }

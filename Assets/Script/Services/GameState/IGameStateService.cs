@@ -24,7 +24,7 @@ namespace Game.Services.GameState
     {
         // State
         GameState CurrentState { get; }
-        void SetState(GameState newState);
+        public void SetState(GameState newState);
 
         // Win/Lose
         void TriggerWin();

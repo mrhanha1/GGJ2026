@@ -18,7 +18,7 @@ namespace PuzzleGame.Gameplay.Input
         [SerializeField] private Camera mainCamera;
 
         [Header("Drag Settings")]
-        [SerializeField] private float snapThreshold = 0.3f; // Distance to snap to grid
+        //[SerializeField] private float snapThreshold = 0.3f; // Distance to snap to grid
 
         // Events
         public UnityEvent<int, Vector2Int> OnSuccessfulPlacement;
