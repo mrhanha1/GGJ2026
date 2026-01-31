@@ -50,7 +50,8 @@ namespace PuzzleGame.Gameplay
             }
             
             // Load first level
-            LoadLevel(currentLevelIndex);
+            int selectedLevel = Game.UI.LevelSelectPanel.GetSelectedLevel();
+            LoadLevel(selectedLevel);
         }
 
         private void OnDestroy()
@@ -107,7 +108,10 @@ namespace PuzzleGame.Gameplay
                 StopCoroutine(winAnimationCoroutine);
                 winAnimationCoroutine = null;
             }
-
+            if (board != null)
+            {
+                board.gameObject.SetActive(true);
+            }
             // Load level on board
             if (board != null)
             {
@@ -135,6 +139,11 @@ namespace PuzzleGame.Gameplay
             if (timerService != null)
             {
                 timerService.StopTimer();
+            }
+
+            if (board != null)
+            {
+                board.gameObject.SetActive(false);
             }
 
             // Set mascot animator win parameter to current level index

@@ -60,6 +60,10 @@ namespace Game.UI
 
         private void OnMainMenuClicked()
         {
+            // Save flag to show LevelSelectPanel
+            PlayerPrefs.SetInt("ShowLevelSelect", 1);
+            PlayerPrefs.Save();
+
             _sceneLoader.LoadScene(SceneNames.MainMenu);
         }
 

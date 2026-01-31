@@ -4,13 +4,14 @@ using UnityEngine;
 using UnityEngine.UI;
 using Game.Core;
 using Game.Services.Audio;
+using System;
 
 namespace Game.UI
 {
     /// <summary>
     /// Settings panel with volume controls.
     /// </summary>
-    public class SettingsPanel : UIPanel
+    public class SettingsPanel : MonoBehaviour
     {
         [Header("Sliders")]
         [SerializeField] private Slider masterSlider;
@@ -22,10 +23,11 @@ namespace Game.UI
 
         private IAudioService _audioService;
 
-        protected override void Awake()
-        {
-            base.Awake();
+        // Event for back/close button
+        public event Action OnBackRequested;
 
+        private void Awake()
+        {
             _audioService = ServiceLocator.Instance.Get<IAudioService>();
 
             // Load current volumes
@@ -40,7 +42,7 @@ namespace Game.UI
             masterSlider.onValueChanged.AddListener(OnMasterChanged);
             musicSlider.onValueChanged.AddListener(OnMusicChanged);
             sfxSlider.onValueChanged.AddListener(OnSFXChanged);
-            closeButton.onClick.AddListener(Hide);
+            closeButton.onClick.AddListener(OnCloseClicked);
         }
 
         private void OnMasterChanged(float value)
@@ -58,12 +60,20 @@ namespace Game.UI
             _audioService?.SetSFXVolume(value);
         }
 
+        /// <summary>
+        /// Called when close button is clicked
+        /// </summary>
+        private void OnCloseClicked()
+        {
+            OnBackRequested?.Invoke();
+        }
+
         private void OnDestroy()
         {
             masterSlider.onValueChanged.RemoveListener(OnMasterChanged);
             musicSlider.onValueChanged.RemoveListener(OnMusicChanged);
             sfxSlider.onValueChanged.RemoveListener(OnSFXChanged);
-            closeButton.onClick.RemoveListener(Hide);
+            closeButton.onClick.RemoveListener(OnCloseClicked);
         }
     }
 }
