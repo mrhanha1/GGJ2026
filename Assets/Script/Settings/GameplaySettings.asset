@@ -13,4 +13,4 @@ MonoBehaviour:
   m_Name: GameplaySettings
   m_EditorClassIdentifier: Assembly-CSharp::PuzzleGame.Gameplay.Settings.GameplaySettings
   requireFullyInside: 1
-  fillAllTiles: 1
+  fillAllTiles: 0

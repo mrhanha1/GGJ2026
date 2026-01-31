@@ -386,6 +386,15 @@ public partial class @GameInputActions: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Piece"",
+                    ""type"": ""Button"",
+                    ""id"": ""40695af8-92a0-4c03-9018-9015fe601804"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -432,6 +441,17 @@ public partial class @GameInputActions: IInputActionCollection2, IDisposable
                     ""action"": ""Submit"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""3987b2ed-fcc5-4d41-b8f8-5b3735b8a700"",
+                    ""path"": ""<Keyboard>/space"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Piece"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -459,6 +479,7 @@ public partial class @GameInputActions: IInputActionCollection2, IDisposable
         m_Puzzle_Point = m_Puzzle.FindAction("Point", throwIfNotFound: true);
         m_Puzzle_Click = m_Puzzle.FindAction("Click", throwIfNotFound: true);
         m_Puzzle_Submit = m_Puzzle.FindAction("Submit", throwIfNotFound: true);
+        m_Puzzle_Piece = m_Puzzle.FindAction("Piece", throwIfNotFound: true);
     }
 
     ~@GameInputActions()
@@ -910,6 +931,7 @@ public partial class @GameInputActions: IInputActionCollection2, IDisposable
     private readonly InputAction m_Puzzle_Point;
     private readonly InputAction m_Puzzle_Click;
     private readonly InputAction m_Puzzle_Submit;
+    private readonly InputAction m_Puzzle_Piece;
     /// <summary>
     /// Provides access to input actions defined in input action map "Puzzle".
     /// </summary>
@@ -933,6 +955,10 @@ public partial class @GameInputActions: IInputActionCollection2, IDisposable
         /// Provides access to the underlying input action "Puzzle/Submit".
         /// </summary>
         public InputAction @Submit => m_Wrapper.m_Puzzle_Submit;
+        /// <summary>
+        /// Provides access to the underlying input action "Puzzle/Piece".
+        /// </summary>
+        public InputAction @Piece => m_Wrapper.m_Puzzle_Piece;
         /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
@@ -968,6 +994,9 @@ public partial class @GameInputActions: IInputActionCollection2, IDisposable
             @Submit.started += instance.OnSubmit;
             @Submit.performed += instance.OnSubmit;
             @Submit.canceled += instance.OnSubmit;
+            @Piece.started += instance.OnPiece;
+            @Piece.performed += instance.OnPiece;
+            @Piece.canceled += instance.OnPiece;
         }
 
         /// <summary>
@@ -988,6 +1017,9 @@ public partial class @GameInputActions: IInputActionCollection2, IDisposable
             @Submit.started -= instance.OnSubmit;
             @Submit.performed -= instance.OnSubmit;
             @Submit.canceled -= instance.OnSubmit;
+            @Piece.started -= instance.OnPiece;
+            @Piece.performed -= instance.OnPiece;
+            @Piece.canceled -= instance.OnPiece;
         }
 
         /// <summary>
@@ -1143,5 +1175,12 @@ public partial class @GameInputActions: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnSubmit(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "Piece" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnPiece(InputAction.CallbackContext context);
     }
 }

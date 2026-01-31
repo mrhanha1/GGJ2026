@@ -11,7 +11,7 @@ namespace PuzzleGame.Gameplay.Settings
         [SerializeField] private bool requireFullyInside = true;
 
         [Tooltip("If true, must fill all tiles to win. If false, only fill target tiles")]
-        [SerializeField] private bool fillAllTiles = true;
+        [SerializeField] private bool fillAllTiles = false;
 
         public bool RequireFullyInside => requireFullyInside;
         public bool FillAllTiles => fillAllTiles;

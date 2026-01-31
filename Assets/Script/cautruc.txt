@@ -70,7 +70,7 @@
 │       │   │   └── PieceVisual.cs
 │       │   ├── Input/
 │       │   │   ├── PieceDragHandler.cs
-│       │   │   └── InputHandler.cs
+│       │   │   └── PuzzleInputHandler.cs
 │       │   ├── Factory/
 │       │   │   └── PieceFactory.cs
 │       │   └── Inventory/

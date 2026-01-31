@@ -3,6 +3,7 @@ using UnityEngine.Tilemaps;
 using System.Collections.Generic;
 using PuzzleGame.Gameplay.Pieces;
 using PuzzleGame.Gameplay.Settings;
+using PuzzleGame.Gameplay.Level;
 
 namespace PuzzleGame.Gameplay.Board
 {
@@ -13,12 +14,17 @@ namespace PuzzleGame.Gameplay.Board
         [SerializeField] private int boardHeight = 15;
 
         [Header("Tilemap References")]
-        [SerializeField] private Tilemap tilemap;
+        [SerializeField] private Tilemap tilemap; // Main gameplay tilemap
+        [SerializeField] private Tilemap backgroundTilemap; // Background image tilemap (NEW)
+        [SerializeField] private Tilemap overlayTilemap; // Target overlay tilemap (NEW)
 
         [Header("Tile Assets")]
         [SerializeField] private TileBase emptyTile;
         [SerializeField] private TileBase filledTile;
         [SerializeField] private TileBase targetTile;
+
+        [Header("Colored Tiles for Image (NEW)")]
+        [SerializeField] private TileBase[] coloredTiles; // 7 different colored tiles
 
         [Header("Gameplay Settings")]
         [SerializeField] private GameplaySettings settings;
@@ -26,6 +32,7 @@ namespace PuzzleGame.Gameplay.Board
         // Internal state
         private bool[,] boardState;
         private bool[,] targetMap;
+        private LevelConfig currentLevel;
 
         private void Awake()
         {
@@ -50,6 +57,115 @@ namespace PuzzleGame.Gameplay.Board
                     boardState[x, y] = false;
                 }
             }
+
+            // Clear background and overlay
+            if (backgroundTilemap != null)
+                backgroundTilemap.ClearAllTiles();
+            if (overlayTilemap != null)
+                overlayTilemap.ClearAllTiles();
+        }
+
+        /// <summary>
+        /// Load level and display target image/overlay (NEW)
+        /// </summary>
+        public void LoadLevel(LevelConfig level)
+        {
+            if (level == null)
+            {
+                Debug.LogWarning("[PuzzleBoard] Level config is null!");
+                return;
+            }
+
+            currentLevel = level;
+
+            // Show target image as background
+            ShowTargetImage();
+
+            // Show target overlay if not filling all tiles
+            ShowTargetOverlay();
+
+            Debug.Log($"[PuzzleBoard] Loaded level: {level.LevelName}");
+        }
+
+        /// <summary>
+        /// Show target image as semi-transparent background (NEW)
+        /// </summary>
+        private void ShowTargetImage()
+        {
+            if (backgroundTilemap == null || currentLevel == null)
+                return;
+
+            backgroundTilemap.ClearAllTiles();
+
+            for (int x = 0; x < boardWidth; x++)
+            {
+                for (int y = 0; y < boardHeight; y++)
+                {
+                    Color pixelColor = currentLevel.GetPixelColor(x, y);
+
+                    // Only show if pixel has color (alpha > 0)
+                    if (pixelColor.a > 0.1f)
+                    {
+                        Vector3Int pos = new Vector3Int(x, y, 0);
+
+                        // Get colored tile based on color
+                        TileBase coloredTile = GetColoredTileFromColor(pixelColor);
+
+                        if (coloredTile != null)
+                        {
+                            backgroundTilemap.SetTile(pos, coloredTile);
+
+                            // Set alpha to 0.3 for semi-transparent effect
+                            backgroundTilemap.SetColor(pos, new Color(pixelColor.r, pixelColor.g, pixelColor.b, 0.3f));
+                        }
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Show target overlay (yellow highlight) if fillAllTiles = false (NEW)
+        /// </summary>
+        public void ShowTargetOverlay()
+        {
+            if (overlayTilemap == null || settings == null)
+                return;
+
+            overlayTilemap.ClearAllTiles();
+
+            // Only show overlay if NOT filling all tiles
+            if (settings.FillAllTiles)
+                return;
+
+            // Show target tiles as yellow overlay
+            for (int x = 0; x < boardWidth; x++)
+            {
+                for (int y = 0; y < boardHeight; y++)
+                {
+                    if (targetMap[x, y])
+                    {
+                        Vector3Int pos = new Vector3Int(x, y, 0);
+                        overlayTilemap.SetTile(pos, targetTile);
+
+                        // Set alpha to 0.5 for semi-transparent overlay
+                        overlayTilemap.SetColor(pos, new Color(1f, 0.84f, 0f, 0.5f)); // Yellow with alpha
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Get colored tile based on pixel color (NEW)
+        /// Simple color matching - can be improved
+        /// </summary>
+        private TileBase GetColoredTileFromColor(Color color)
+        {
+            if (coloredTiles == null || coloredTiles.Length == 0)
+                return filledTile; // Fallback to filled tile
+
+            // Simple approach: use first colored tile
+            // You can improve this by matching actual colors
+            return coloredTiles[0];
         }
 
         /// <summary>
@@ -221,5 +337,6 @@ namespace PuzzleGame.Gameplay.Board
         public int BoardWidth => boardWidth;
         public int BoardHeight => boardHeight;
         public GameplaySettings Settings => settings;
+        public LevelConfig CurrentLevel => currentLevel;
     }
 }

@@ -50,8 +50,8 @@ MainMenu Scene
 │   ├── SettingsButton (Button - TextMeshPro)
 │   ├── ExitButton (Button - TextMeshPro)
 │   └── SettingsPanel
-│       ├Sliders (master, music, sfx)
-|       └CloseButton
+│       ├── Sliders (master, music, sfx)
+│       └── CloseButton
 │
 ├── EventSystem (auto-created with Canvas)
 │
@@ -75,7 +75,7 @@ DontDestroyOnLoad Hierarchy (After MainMenu loads):
         └── Component: GameStateService
 ```
 
-## Gameplay.unity
+## Gameplay.unity (Puzzle Game)
 ```
 Gameplay Scene
 ├── GameplayCamera
@@ -89,7 +89,9 @@ Gameplay Scene
 │   │   └── Components:
 │   │       ├── Camera
 │   │       │   - Tag: Main Camera
+│   │       │   - Position: (7, 7, -10) ← Adjusted for 15x15 board
 │   │       │   - Projection: Orthographic
+│   │       │   - Size: 8-10 ← Adjusted to see full board
 │   │       └── CinemachineBrain
 │   │           - Update Method: Smart Update
 │   │           - Blend Update Method: Late Update
@@ -97,15 +99,15 @@ Gameplay Scene
 │   └── CM Camera (child)
 │       └── Components:
 │           ├── CinemachineCamera
-│           │   - Tracking Target: Player
+│           │   - Tracking Target: None (fixed camera)
 │           │   - Look At Target: None
 │           │   - Lens:
 │           │       - Orthographic: ✓
-│           │       - Orthographic Size: 5
+│           │       - Orthographic Size: 8-10
 │           │   - Position Composer:
 │           │       - Camera Distance: 10
-│           │       - Dead Zone Width: 0.1
-│           │       - Dead Zone Height: 0.1
+│           │       - Dead Zone Width: 0
+│           │       - Dead Zone Height: 0
 │           └── CinemachineImpulseListener
 │
 ├── ServiceInstaller
@@ -113,21 +115,68 @@ Gameplay Scene
 │       └── GameplayInstaller (script)
 │           - Camera Service: GameplayCamera (reference)
 │
-├── Player
+├── PuzzleBoard (NEW)
 │   ├── Transform: Position (0, 0, 0)
-│   └── Components:
-│       ├── Mesh Filter
-│       ├── Mesh Renderer
-│       ├── Box Collider
-|       └--CameraServiceTest (script)
+│   ├── Components:
+│   │   ├── Grid
+│   │   └── PuzzleBoard (script)
+│   │       - Board Width: 15
+│   │       - Board Height: 15
+│   │       - Tilemap: Tilemap (child reference)
+│   │       - Empty Tile: EmptyTile asset
+│   │       - Filled Tile: FilledTile asset
+│   │       - Target Tile: TargetTile asset
+│   │       - Settings: GameplaySettings asset
+│   │
+│   └── Tilemap (child)
+│       └── Components:
+│           ├── Tilemap
+│           └── Tilemap Renderer
+│               - Sorting Layer: Default
+│               - Order in Layer: 0
 │
-├── GameStateTest (Empty GameObject - Optional)
+├── PieceFactory (NEW)
 │   └── Components:
-│       └── GameStateTest (script)
+│       └── PieceFactory (script)
+│           - Available Shapes: [Array of 3-7 PieceShape assets]
+│               - TestShape_I
+│               - TestShape_O
+│               - TestShape_T
+│               - TestShape_S
+│               - TestShape_Z
+│               - TestShape_J
+│               - TestShape_L
+│
+├── PuzzleTestController (NEW - Phase 3 Testing)
+│   └── Components:
+│       └── PuzzleTestController (script)
+│           - Board: PuzzleBoard (reference)
+│           - Factory: PieceFactory (reference)
+│           - Main Camera: Main Camera (reference)
+│           - Selected Type: OR
+│           - Selected Shape Index: 0
+│           - Available Shapes: [Same array as Factory]
+│           - Valid Color: White (1, 1, 1, 0.7)
+│           - Invalid Color: Red (1, 0, 0, 0.4)
+│           - And Color: Blue (0.5, 0.5, 1, 1)
+│           - Or Color: Green (0.5, 1, 0.5, 1)
+│           - Not Color: Red (1, 0.5, 0.5, 1)
 │
 ├── EventSystem (if has UI)
 │
 └── Directional Light (default)
+
+
+Runtime Hierarchy (During Gameplay):
+├── PuzzleBoard
+│   └── Tilemap (15x15 tiles visible)
+│
+├── PuzzleTestController
+│   └── PiecePreview (child, created runtime)
+│       ├── PreviewCell_0 (SpriteRenderer)
+│       ├── PreviewCell_1 (SpriteRenderer)
+│       ├── PreviewCell_2 (SpriteRenderer)
+│       └── ... (dynamic based on piece shape)
 
 
 DontDestroyOnLoad Hierarchy (After Gameplay loads):
@@ -135,4 +184,96 @@ DontDestroyOnLoad Hierarchy (After Gameplay loads):
     ├── SceneLoader
     ├── AudioService (persists from MainMenu)
     ├── GameStateService (persists from MainMenu)
-    └── (NO CameraService - vì CameraService là component của GameplayCamera trong scene)
+    └── InputService (created runtime by GameplayInstaller)
+        └── Component: InputService
+            - GameInputActions instance (Puzzle map enabled)
+```
+
+---
+
+## Assets Structure (Phase 1-3)
+```
+Assets/_Project/
+├── Scenes/
+│   ├── Bootstrap.unity
+│   ├── MainMenu.unity
+│   └── Gameplay.unity
+│
+├── Scripts/
+│   ├── Core/ (existing framework)
+│   │   ├── ServiceLocator/
+│   │   ├── SceneManagement/
+│   │   └── GameManager.cs
+│   │
+│   ├── Services/ (existing)
+│   │   ├── Audio/
+│   │   ├── Camera/
+│   │   ├── GameState/
+│   │   ├── Input/ (existing)
+│   │   │   ├── IInputService.cs
+│   │   │   └── InputService.cs
+│   │   └── Installer/
+│   │       ├── GameplayInstaller.cs
+│   │       └── MainMenuInstaller.cs
+│   │
+│   ├── UI/ (existing)
+│   │   ├── Base/
+│   │   ├── MainMenu/
+│   │   ├── Settings/
+│   │   └── Gameplay/
+│   │
+│   └── Gameplay/ (NEW - Phase 1-3)
+│       ├── Board/
+│       │   └── PuzzleBoard.cs
+│       ├── Pieces/
+│       │   ├── Data/
+│       │   │   ├── PieceType.cs
+│       │   │   ├── PieceShape.cs
+│       │   │   └── PuzzlePiece.cs
+│       │   └── Factory/
+│       │       └── PieceFactory.cs
+│       ├── Settings/
+│       │   └── GameplaySettings.cs
+│       ├── Test/
+│       │   └── PuzzleTestController.cs
+│       └── Editor/
+│           └── PieceShapeEditor.cs
+│
+├── Prefabs/
+│   ├── Core/ (existing)
+│   ├── Camera/ (existing)
+│   ├── UI/ (existing)
+│   └── Gameplay/ (NEW)
+│       └── PuzzleBoard.prefab
+│
+├── Settings/
+│   ├── CameraShakes/ (existing)
+│   ├── GameplaySettings.asset (NEW - Phase 3)
+│   └── Pieces/ (NEW - Phase 2)
+│       ├── TestShape_I.asset (12x12)
+│       ├── TestShape_O.asset (12x12)
+│       ├── TestShape_T.asset (12x12)
+│       ├── TestShape_S.asset (12x12)
+│       ├── TestShape_Z.asset (12x12)
+│       ├── TestShape_J.asset (12x12)
+│       └── TestShape_L.asset (12x12)
+│
+├── Tiles/ (NEW - Phase 1)
+│   ├── EmptyTile.asset (Gray #808080)
+│   ├── FilledTile.asset (Blue #00BFFF)
+│   └── TargetTile.asset (Yellow #FFD700)
+│
+├── Input/ (existing + NEW)
+│   └── GameInputActions.inputactions
+│       └── Action Maps:
+│           ├── Player (existing)
+│           ├── UI (existing)
+│           ├── GameState (existing)
+│           └── Puzzle (NEW - Phase 3)
+│               ├── Point (Vector2) - <Mouse>/position
+│               ├── Click (Button) - <Mouse>/leftButton
+│               └── Submit (Button) - <Mouse>/rightButton, <Keyboard>/r
+│
+└── Resources/
+    └── Audio/ (existing)
+```

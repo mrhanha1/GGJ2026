@@ -1,18 +1,17 @@
 using UnityEngine;
-using UnityEngine.UI;
 using System.Collections.Generic;
 using PuzzleGame.Gameplay.Pieces;
 
 namespace PuzzleGame.Gameplay.Visual
 {
     /// <summary>
-    /// Visual representation of a puzzle piece using UI Images
+    /// Visual representation of a puzzle piece using SpriteRenderers (for world space drag)
     /// </summary>
-    public class PieceVisual : MonoBehaviour
+    public class PieceVisualWorld : MonoBehaviour
     {
         [Header("Visual Settings")]
         [SerializeField] private Sprite cellSprite; // Square sprite - assign in Inspector
-        [SerializeField] private float cellSize = 20f; // Pixels for UI
+        [SerializeField] private float cellSize = 1f; // World units
 
         [Header("Type Colors")]
         [SerializeField] private Color andColor = new Color(0.5f, 0.5f, 1f, 1f); // Blue
@@ -23,7 +22,7 @@ namespace PuzzleGame.Gameplay.Visual
         [SerializeField] private Color validColor = new Color(1f, 1f, 1f, 0.7f); // White transparent
         [SerializeField] private Color invalidColor = new Color(1f, 0f, 0f, 0.4f); // Red transparent
 
-        private List<Image> cellImages = new List<Image>();
+        private List<SpriteRenderer> cellRenderers = new List<SpriteRenderer>();
         private Color baseColor;
 
         /// <summary>
@@ -40,27 +39,20 @@ namespace PuzzleGame.Gameplay.Visual
             // Get occupied cells
             var cells = piece.GetOccupiedCells();
 
-            // Create UI Image for each cell
+            // Create sprite renderer for each cell
             foreach (var cell in cells)
             {
                 GameObject cellObj = new GameObject($"Cell_{cell.x}_{cell.y}");
-                cellObj.transform.SetParent(transform, false);
+                cellObj.transform.SetParent(transform);
+                cellObj.transform.localPosition = new Vector3(cell.x * cellSize, cell.y * cellSize, 0);
 
-                // Add RectTransform
-                RectTransform rectTransform = cellObj.AddComponent<RectTransform>();
-                rectTransform.anchorMin = new Vector2(0.5f, 0.5f);
-                rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
-                rectTransform.pivot = new Vector2(0.5f, 0.5f);
-                rectTransform.sizeDelta = new Vector2(cellSize, cellSize);
-                rectTransform.anchoredPosition = new Vector2(cell.x * cellSize, cell.y * cellSize);
+                SpriteRenderer sr = cellObj.AddComponent<SpriteRenderer>();
+                sr.sprite = cellSprite;
+                sr.color = baseColor;
+                sr.sortingLayerName = "Default";
+                sr.sortingOrder = 10; // Above board tiles
 
-                // Add Image component
-                Image img = cellObj.AddComponent<Image>();
-                img.sprite = cellSprite;
-                img.color = baseColor;
-                img.raycastTarget = false; // Don't block raycasts
-
-                cellImages.Add(img);
+                cellRenderers.Add(sr);
             }
         }
 
@@ -69,11 +61,11 @@ namespace PuzzleGame.Gameplay.Visual
         /// </summary>
         public void SetAlpha(float alpha)
         {
-            foreach (var image in cellImages)
+            foreach (var renderer in cellRenderers)
             {
-                Color color = image.color;
+                Color color = renderer.color;
                 color.a = alpha;
-                image.color = color;
+                renderer.color = color;
             }
         }
 
@@ -82,9 +74,9 @@ namespace PuzzleGame.Gameplay.Visual
         /// </summary>
         public void SetTint(Color tint)
         {
-            foreach (var image in cellImages)
+            foreach (var renderer in cellRenderers)
             {
-                image.color = tint;
+                renderer.color = tint;
             }
         }
 
@@ -117,12 +109,12 @@ namespace PuzzleGame.Gameplay.Visual
         /// </summary>
         public void ClearVisual()
         {
-            foreach (var image in cellImages)
+            foreach (var renderer in cellRenderers)
             {
-                if (image != null)
-                    Destroy(image.gameObject);
+                if (renderer != null)
+                    Destroy(renderer.gameObject);
             }
-            cellImages.Clear();
+            cellRenderers.Clear();
         }
 
         /// <summary>

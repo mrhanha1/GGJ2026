@@ -1,0 +1,226 @@
+﻿
+```
+Gameplay Scene
+├── GameplayCamera
+│   ├── Components:
+│   │   ├── Cinemachine Impulse Source
+│   │   └── CameraService (script)
+│   │       - Cinemachine Camera: CM Camera (below)
+│   │       - Impulse Source: CM Camera (below)
+│   │
+│   ├── Main Camera (child)
+│   │   └── Components:
+│   │       ├── Camera
+│   │       │   - Tag: Main Camera
+│   │       │   - Position: (7, 7, -10) ← Adjusted for 15x15 board
+│   │       │   - Projection: Orthographic
+│   │       │   - Size: 8-10 ← Adjusted to see full board
+│   │       └── CinemachineBrain
+│   │           - Update Method: Smart Update
+│   │           - Blend Update Method: Late Update
+│   │
+│   └── CM Camera (child)
+│       └── Components:
+│           ├── CinemachineCamera
+│           │   - Tracking Target: None (fixed camera)
+│           │   - Look At Target: None
+│           │   - Lens:
+│           │       - Orthographic: ✓
+│           │       - Orthographic Size: 8-10
+│           │   - Position Composer:
+│           │       - Camera Distance: 10
+│           │       - Dead Zone Width: 0
+│           │       - Dead Zone Height: 0
+│           └── CinemachineImpulseListener
+│
+├── ServiceInstaller
+│   └── Components:
+│       └── GameplayInstaller (script)
+│           - Camera Service: GameplayCamera (reference)
+│
+├── PuzzleBoard
+│   ├── Transform: Position (0, 0, 0)
+│   ├── Components:
+│   │   ├── Grid
+│   │   └── PuzzleBoard (script)
+│   │       - Board Width: 15
+│   │       - Board Height: 15
+│   │       - Tilemap: Tilemap (child reference)
+│   │       - Background Tilemap: BackgroundTilemap (child reference)
+│   │       - Overlay Tilemap: OverlayTilemap (child reference)
+│   │       - Empty Tile: EmptyTile asset
+│   │       - Filled Tile: FilledTile asset
+│   │       - Target Tile: TargetTile asset
+│   │       - Colored Tiles: [Array of colored tiles]
+│   │       - Settings: GameplaySettings asset
+│   │
+│   ├── BackgroundTilemap (child) - Order in Layer: -1
+│   │   └── Components:
+│   │       ├── Tilemap
+│   │       └── Tilemap Renderer
+│   │           - Sorting Layer: Default
+│   │           - Order in Layer: -1 ← Below everything
+│   │
+│   ├── Tilemap (child) - Main Gameplay - Order in Layer: 0
+│   │   └── Components:
+│   │       ├── Tilemap
+│   │       └── Tilemap Renderer
+│   │           - Sorting Layer: Default
+│   │           - Order in Layer: 0 ← Middle layer
+│   │
+│   └── OverlayTilemap (child) - Order in Layer: 1
+│       └── Components:
+│           ├── Tilemap
+│           └── Tilemap Renderer
+│               - Sorting Layer: Default
+│               - Order in Layer: 1 ← Above empty tiles (visible)
+│
+├── PieceFactory
+│   └── Components:
+│       └── PieceFactory (script)
+│           - Available Shapes: [Array of 3-7 PieceShape assets]
+│               - TestShape_I
+│               - TestShape_O
+│               - TestShape_T
+│               - TestShape_S
+│               - TestShape_Z
+│               - TestShape_J
+│               - TestShape_L
+│
+├── PieceInventory
+│   └── Components:
+│       └── PieceInventory (script)
+│           - Max Slots: 3
+│           - Factory: PieceFactory (reference)
+│
+├── PieceDragHandler (Initially Inactive)
+│   └── Components:
+│       ├── PieceVisualWorld (script) ← For world space dragging
+│       │   - Cell Sprite: Square Sprite
+│       │   - Cell Size: 1.0 (world units)
+│       │   - And Color: Blue (0.5, 0.5, 1, 1)
+│       │   - Or Color: Green (0.5, 1, 0.5, 1)
+│       │   - Not Color: Red (1, 0.5, 0.5, 1)
+│       │   - Valid Color: White (1, 1, 1, 0.7)
+│       │   - Invalid Color: Red (1, 0, 0, 0.4)
+│       └── PieceDragHandler (script)
+│           - Visual: PieceVisualWorld (auto-reference)
+│           - Board: PuzzleBoard (reference)
+│           - Main Camera: Main Camera (reference)
+│           - Snap Threshold: 0.3
+│
+├── PuzzleInputHandler
+│   └── Components:
+│       └── PuzzleInputHandler (script)
+│           - Board: PuzzleBoard (reference)
+│           - Inventory: PieceInventory (reference)
+│           - Drag Handler: PieceDragHandler (reference)
+│           - Place Piece SFX: (optional)
+│           - Invalid Place SFX: (optional)
+│
+├── PuzzleManager
+│   └── Components:
+│       └── PuzzleManager (script)
+│           - Board: PuzzleBoard (reference)
+│           - Levels: [Array of LevelConfig assets]
+│               - Level_01
+│               - Level_02
+│               - Level_03
+│               - Level_04
+│               - Level_05
+│               - Level_06
+│               - Level_07
+│           - Current Level Index: 0
+│
+├── Canvas (Screen Space - Overlay)
+│   ├── Components:
+│   │   ├── Canvas
+│   │   │   - Render Mode: Screen Space - Overlay
+│   │   ├── Canvas Scaler
+│   │   │   - UI Scale Mode: Scale With Screen Size
+│   │   │   - Reference Resolution: 1920x1080
+│   │   └── Graphic Raycaster
+│   │
+│   └── InventoryPanel
+│       ├── Components:
+│       │   ├── RectTransform
+│       │   │   - Anchor: Bottom Center
+│       │   │   - Position: (0, 100, 0)
+│       │   ├── Image (background - optional)
+│       │   └── InventoryUI (script)
+│       │       - Slot UIs: [Slot_0, Slot_1, Slot_2]
+│       │       - Inventory: PieceInventory (reference)
+│       │       - Input Handler: PuzzleInputHandler (reference)
+│       │
+│       ├── Slot_0
+│       │   ├── Components:
+│       │   │   ├── RectTransform
+│       │   │   │   - Width/Height: 100x100
+│       │   │   ├── Image (border)
+│       │   │   │   - Color: White (normal) / Yellow (selected)
+│       │   │   ├── CanvasGroup
+│       │   │   │   - Alpha: 1 (normal) / 0.5 (dragging)
+│       │   │   └── InventorySlotUI (script)
+│       │   │       - Visual: PieceVisualContainer/PieceVisual
+│       │   │       - Border: Image (auto-reference)
+│       │   │       - Canvas Group: CanvasGroup (auto-reference)
+│       │   │       - Normal Color: White
+│       │   │       - Selected Color: Yellow
+│       │   │       - Drag Alpha: 0.5
+│       │   │       - Pickup SFX: (optional)
+│       │   │
+│       │   └── PieceVisualContainer
+│       │       ├── Components:
+│       │       │   ├── RectTransform
+│       │       │   │   - Anchors: center/center (0.5, 0.5)
+│       │       │   │   - Width/Height: 80x80
+│       │       │   │   - Scale: (1, 1, 1)
+│       │       │   └── PieceVisual (script) ← UI version
+│       │       │       - Cell Sprite: Square Sprite
+│       │       │       - Cell Size: 20 (pixels)
+│       │       │       - And Color: Blue (0.5, 0.5, 1, 1)
+│       │       │       - Or Color: Green (0.5, 1, 0.5, 1)
+│       │       │       - Not Color: Red (1, 0.5, 0.5, 1)
+│       │       │       - Valid Color: White (1, 1, 1, 0.7)
+│       │       │       - Invalid Color: Red (1, 0, 0, 0.4)
+│       │       │
+│       │       └── (Runtime children: Cell_0_0, Cell_0_1... created by PieceVisual)
+│       │
+│       ├── Slot_1 (same structure as Slot_0)
+│       └── Slot_2 (same structure as Slot_0)
+│
+├── EventSystem (auto-created with Canvas)
+│
+└── Directional Light (default)
+
+
+Runtime Hierarchy (During Gameplay):
+├── PuzzleBoard
+│   ├── BackgroundTilemap (shows target image with alpha 0.3)
+│   ├── Tilemap (15x15 tiles: empty or filled)
+│   └── OverlayTilemap (shows yellow targets with alpha 0.5)
+│
+├── PieceDragHandler (active when dragging)
+│   └── PieceVisualWorld (runtime children)
+│       ├── Cell_0_0 (SpriteRenderer)
+│       ├── Cell_0_1 (SpriteRenderer)
+│       └── ... (dynamic based on piece shape)
+│
+└── Canvas/InventoryPanel
+    ├── Slot_0/PieceVisualContainer
+    │   ├── Cell_0_0 (Image)
+    │   ├── Cell_1_0 (Image)
+    │   └── ... (dynamic based on piece shape)
+    ├── Slot_1/PieceVisualContainer (same)
+    └── Slot_2/PieceVisualContainer (same)
+
+
+DontDestroyOnLoad Hierarchy (After Gameplay loads):
+└── ServiceLocator
+    ├── SceneLoader
+    ├── AudioService (persists from MainMenu)
+    ├── GameStateService (persists from MainMenu)
+    └── InputService (created runtime by GameplayInstaller)
+        └── Component: InputService
+            - GameInputActions instance (Puzzle map enabled)
+```
